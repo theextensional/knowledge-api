@@ -27,3 +27,6 @@ curl http://localhost:8108/health
 Пример использования:
 - https://github.com/typesense/typesense-python/blob/master/examples/index_and_search.py
  
+# Firebase
+
+Данная облачная база не поддерживает полнотекстовый поиск, а только поиск по точному совпадению значения. Для интеграции с полнотекстовыми системами на странице документации [предлагаются платные плагины](https://firebase.google.com/docs/firestore/solutions/search).
