@@ -19,7 +19,7 @@ curl http://localhost:8108/health
 
 Ключи запуска сервера:
 - `--data-dir` - директория, в которой Typesense будет хранит базу данных. В примере это `data`;
-- `--api-key` = ключ, по которому осуществляется досту к Typesense. В примере это `your_any_key`.
+- `--api-key` - ключ, по которому осуществляется досту к Typesense. В примере это `your_any_key`.
 
 Подробное описание:
 - https://typesense.org/docs/guide/install-typesense.html#%F0%9F%8E%AC-start
