@@ -1,4 +1,0 @@
-GitPython
-firebase
-firebase-admin
-requests

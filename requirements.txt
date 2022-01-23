@@ -1,0 +1,6 @@
+GitPython
+firebase
+firebase-admin
+requests
+typesense
+djangorestframework
