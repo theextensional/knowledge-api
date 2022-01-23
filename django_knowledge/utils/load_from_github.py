@@ -5,6 +5,7 @@ import os.path
 import firebase_admin
 import requests
 from firebase_admin import credentials, firestore
+from typesense import Client
 
 
 def download_from_github_archive(owner, repo, directory):
@@ -46,6 +47,9 @@ def download_from_github_directory(owner, repo, directory, token):
         'User-Agent': 'test',
     })
     content = response.json()
+    if 'message' in content:
+        print(content['message'])
+
     errors = content.get('errors')
     if errors:
         for error in errors:
@@ -69,43 +73,124 @@ class UploaderFirestore:
         firebase_admin.initialize_app(cred)
         self.db = firestore.client()
         self.batch = self.db.batch()
-        self.portion_size = 0
 
-    def upload(self, file_name, file_content):
+    def clear(self):
+        ...
+
+    def add_to_portion(self, file_name, file_content):
         ref = self.db.collection('knowledge').document(file_name)
         self.batch.set(ref, {'text': file_content})
-        self.portion_size += 1
-
-        if self.portion_size == self.MAX_PORTION_SIZE:
-            self.batch.commit()
 
     def commit(self):
         self.batch.commit()
 
 
+class UploaderTypesense:
+    MAX_PORTION_SIZE = 500
+    portion = []
+    knowledge_schema = {
+        'name': 'knowledge',
+        'fields': [
+            {'name': 'filename', 'type': 'string'},
+            {'name': 'text', 'type': 'string', 'facet': True},
+            {'name': 'index', 'type': 'float'}
+        ],
+        'default_sorting_field': 'index'
+    }
+    index = 0
+
+    def __init__(self, server, port, protocol, api_key):
+        self.client = Client({
+            'nodes': [{
+                'host': server,
+                'port': port,
+                'protocol': protocol,
+            }],
+            'api_key': api_key,
+            'connection_timeout_seconds': 2
+        })
+
+    def clear(self):
+        try:
+            name = self.knowledge_schema['name']
+            self.client.collections[name].delete()
+        except Exception as e:
+            pass
+
+        self.client.collections.create(self.knowledge_schema)
+
+    def add_to_portion(self, file_name, file_content):
+        fields = {'filename': file_name, 'text': file_content, 'index': self.index}
+        self.portion.append(fields)
+        self.index += 1
+
+    def commit(self):
+        name = self.knowledge_schema['name']
+        self.client.collections[name].documents.import_(self.portion)
+        self.portion.clear()
+
+    def search(self, file_name=None, file_content=None, page_number=1):
+        name = self.knowledge_schema['name']
+        res = self.client.collections[name].documents.search({
+            'q': file_name,
+            'query_by': 'filename',
+            'sort_by': 'index:desc'
+        })
+        results = []
+        for hit in res['hits']:
+            document = hit['document']
+            results.append(dict(title=document['filename'], content=document['text']))
+
+        return dict(results=results, count=res['found'])
+
+
 def run_initiator(downloader, args_downloader, uploader, args_uploader):
     downloader = globals()['download_from_{}'.format(downloader)]
     uploader = globals()['Uploader{}'.format(uploader.title())](*args_uploader)
+    uploader.clear()
+    portion_size = 0
     for file_name, file_content in downloader(*args_downloader):
-        uploader.upload(file_name, file_content)
+        uploader.add_to_portion(file_name, file_content)
+        portion_size += 1
+        if portion_size == uploader.MAX_PORTION_SIZE:
+            uploader.commit()
+            portion_size = 0
 
-    uploader.commit()
+    if portion_size:
+        uploader.commit()
+
+
+def search(uploader, args_uploader, file_name=None, file_content=None):
+    uploader = globals()['Uploader{}'.format(uploader.title())](*args_uploader)
+    return uploader.search(file_name, file_content)
 
 
 if __name__ == '__main__':
     GITHUB_OWNER = 'TVP-Support'
     GITHUB_REPO = 'knowledge'
     GITHUB_DIRECTORY = 'db'
-    GITHUB_TOKEN = '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'
+    GITHUB_TOKEN = ''
+
     FIRESTORE_CERTIFICATE = 'knowledge.json'
+
+    TYPESENSE_SERVER = 'localhost'  # For Typesense Cloud use xxx.a1.typesense.net
+    TYPESENSE_PORT = '8108'  # For Typesense Cloud use 443
+    TYPESENSE_PROTOCOL = 'http'  # For Typesense Cloud use https
+    TYPESENSE_API_KEY = 'your_any_key'
+
     DOWNLOADER = 'github_archive'
-    UPLOADER = 'firestore'
+    UPLOADER = 'typesense'
 
     args_downloader = {
         'github_archive': (GITHUB_OWNER, GITHUB_REPO, GITHUB_DIRECTORY),
         'github_directory': (GITHUB_OWNER, GITHUB_REPO, GITHUB_DIRECTORY, GITHUB_TOKEN),
     }
     args_uploader = {
-        'firestore': (FIRESTORE_CERTIFICATE,)
+        'firestore': (FIRESTORE_CERTIFICATE,),
+        'typesense': (TYPESENSE_SERVER, TYPESENSE_PORT, TYPESENSE_PROTOCOL, TYPESENSE_API_KEY),
     }
-    run_initiator(DOWNLOADER, args_downloader[DOWNLOADER], UPLOADER, args_uploader[UPLOADER])
+    #run_initiator(DOWNLOADER, args_downloader[DOWNLOADER], UPLOADER, args_uploader[UPLOADER])
+    results = search(UPLOADER, args_uploader[UPLOADER], file_name='Studio')
+    print(results['count'])
+    for result in results['results']:
+        print(result)
