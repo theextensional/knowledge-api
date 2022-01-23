@@ -74,6 +74,9 @@ class UploaderFirestore:
         self.db = firestore.client()
         self.batch = self.db.batch()
 
+    def clear(self):
+        ...
+
     def add_to_portion(self, file_name, file_content):
         ref = self.db.collection('knowledge').document(file_name)
         self.batch.set(ref, {'text': file_content})
@@ -106,6 +109,8 @@ class UploaderTypesense:
             'api_key': api_key,
             'connection_timeout_seconds': 2
         })
+
+    def clear(self):
         try:
             name = self.knowledge_schema['name']
             self.client.collections[name].delete()
@@ -124,10 +129,25 @@ class UploaderTypesense:
         self.client.collections[name].documents.import_(self.portion)
         self.portion.clear()
 
+    def search(self, file_name=None, file_content=None, page_number=1):
+        name = self.knowledge_schema['name']
+        res = self.client.collections[name].documents.search({
+            'q': file_name,
+            'query_by': 'filename',
+            'sort_by': 'index:desc'
+        })
+        results = []
+        for hit in res['hits']:
+            document = hit['document']
+            results.append(dict(title=document['filename'], content=document['text']))
+
+        return dict(results=results, count=res['found'])
+
 
 def run_initiator(downloader, args_downloader, uploader, args_uploader):
     downloader = globals()['download_from_{}'.format(downloader)]
     uploader = globals()['Uploader{}'.format(uploader.title())](*args_uploader)
+    uploader.clear()
     portion_size = 0
     for file_name, file_content in downloader(*args_downloader):
         uploader.add_to_portion(file_name, file_content)
@@ -138,6 +158,11 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
 
     if portion_size:
         uploader.commit()
+
+
+def search(uploader, args_uploader, file_name=None, file_content=None):
+    uploader = globals()['Uploader{}'.format(uploader.title())](*args_uploader)
+    return uploader.search(file_name, file_content)
 
 
 if __name__ == '__main__':
@@ -164,4 +189,8 @@ if __name__ == '__main__':
         'firestore': (FIRESTORE_CERTIFICATE,),
         'typesense': (TYPESENSE_SERVER, TYPESENSE_PORT, TYPESENSE_PROTOCOL, TYPESENSE_API_KEY),
     }
-    run_initiator(DOWNLOADER, args_downloader[DOWNLOADER], UPLOADER, args_uploader[UPLOADER])
+    #run_initiator(DOWNLOADER, args_downloader[DOWNLOADER], UPLOADER, args_uploader[UPLOADER])
+    results = search(UPLOADER, args_uploader[UPLOADER], file_name='Studio')
+    print(results['count'])
+    for result in results['results']:
+        print(result)

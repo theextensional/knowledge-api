@@ -23,11 +23,8 @@ curl http://localhost:8108/health
 - `--data-dir` - директория, в которой Typesense будет хранит базу данных. В примере это `data`;
 - `--api-key` - ключ, по которому осуществляется досту к Typesense. В примере это `your_any_key`.
 
-Подробное описание:
-- https://typesense.org/docs/guide/install-typesense.html#%F0%9F%8E%AC-start
-
-Пример использования:
-- https://github.com/typesense/typesense-python/blob/master/examples/index_and_search.py
+- Подробное описание установки: https://typesense.org/docs/guide/install-typesense.html#%F0%9F%8E%AC-start
+- Примеры использования: https://github.com/typesense/typesense-python/blob/master/examples
  
 ## Firebase
 
