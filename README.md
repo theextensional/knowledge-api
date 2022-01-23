@@ -24,6 +24,7 @@ curl http://localhost:8108/health
 - `--api-key` - ключ, по которому осуществляется досту к Typesense. В примере это `your_any_key`.
 
 - Подробное описание установки: https://typesense.org/docs/guide/install-typesense.html#%F0%9F%8E%AC-start
+- Описание API для работы с документами Typesense (включая разные способы поиска): https://typesense.org/docs/0.22.1/api/documents.html#federated-multi-search
 - Примеры использования: https://github.com/typesense/typesense-python/blob/master/examples
  
 ## Firebase
