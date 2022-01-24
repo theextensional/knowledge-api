@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 
-from django_knowledge.utils.load_from_github import search
-from django_knowledge.utils.credentials import args_uploader
+from note.load_from_github import search
+from note.credentials import args_uploader
 
 
 @api_view(('GET',))
