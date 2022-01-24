@@ -10,7 +10,7 @@ from note.credentials import args_uploader
 
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,))
-def search(request):
+def note_search(request):
     title = request.GET.get('title')
     content = request.GET.get('content')
     uploader = request.GET.get('source', settings.DEFAULT_UPLOADER)
