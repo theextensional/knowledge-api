@@ -2,7 +2,9 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+load_dotenv(os.path.join(BASE_DIR, '../.env'))
 
 ALLOWED_HOSTS = ['*']
 ROOT_URLCONF = 'django_knowledge.urls'
@@ -46,6 +48,13 @@ TEMPLATES = [
 ]
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'j^)*90mk@i&-3$9p)0-g^!+m3)fdx^08moesscx=8=8jqr%&g0')
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
 
 # KNOWLEDGE
 

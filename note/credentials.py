@@ -23,4 +23,5 @@ args_uploader = {
         settings.TYPESENSE_PROTOCOL,
         settings.TYPESENSE_API_KEY,
     ),
+    'django_server': set(),
 }
