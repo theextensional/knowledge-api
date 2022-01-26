@@ -4,10 +4,11 @@ from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-load_dotenv(os.path.join(BASE_DIR, '../.env'))
+load_dotenv(os.path.join(BASE_DIR, 'django_knowledge/.env'))
 
 ALLOWED_HOSTS = ['*']
 ROOT_URLCONF = 'django_knowledge.urls'
+WSGI_APPLICATION = 'django_knowledge.wsgi.application'
 
 INSTALLED_APPS = [
     'django.contrib.admin',

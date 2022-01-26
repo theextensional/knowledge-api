@@ -199,34 +199,3 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
 def search(uploader, args_uploader, file_name=None, file_content=None):
     uploader = globals()[get_class_name(uploader)](*args_uploader)
     return uploader.search(file_name, file_content)
-
-
-if __name__ == '__main__':
-    GITHUB_OWNER = 'TVP-Support'
-    GITHUB_REPO = 'knowledge'
-    GITHUB_DIRECTORY = 'db'
-    GITHUB_TOKEN = ''
-
-    FIRESTORE_CERTIFICATE = 'knowledge.json'
-
-    TYPESENSE_SERVER = 'localhost'  # For Typesense Cloud use xxx.a1.typesense.net
-    TYPESENSE_PORT = '8108'  # For Typesense Cloud use 443
-    TYPESENSE_PROTOCOL = 'http'  # For Typesense Cloud use https
-    TYPESENSE_API_KEY = 'your_any_key'
-
-    DOWNLOADER = 'github_archive'
-    UPLOADER = 'typesense'
-
-    args_downloader = {
-        'github_archive': (GITHUB_OWNER, GITHUB_REPO, GITHUB_DIRECTORY),
-        'github_directory': (GITHUB_OWNER, GITHUB_REPO, GITHUB_DIRECTORY, GITHUB_TOKEN),
-    }
-    args_uploader = {
-        'firestore': (FIRESTORE_CERTIFICATE,),
-        'typesense': (TYPESENSE_SERVER, TYPESENSE_PORT, TYPESENSE_PROTOCOL, TYPESENSE_API_KEY),
-    }
-    #run_initiator(DOWNLOADER, args_downloader[DOWNLOADER], UPLOADER, args_uploader[UPLOADER])
-    results = search(UPLOADER, args_uploader[UPLOADER], file_name='Studio')
-    print(results['count'])
-    for result in results['results']:
-        print(result)
