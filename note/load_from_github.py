@@ -7,6 +7,8 @@ import requests
 from firebase_admin import credentials, firestore
 from typesense import Client
 
+from note.models import Note
+
 
 def download_from_github_archive(owner, repo, directory):
     response = requests.get('https://github.com/{}/{}/archive/refs/heads/main.zip'.format(owner, repo))
@@ -144,9 +146,43 @@ class UploaderTypesense:
         return dict(results=results, count=res['found'])
 
 
+class UploaderDjangoServer:
+    MAX_PORTION_SIZE = 400
+    portion = []
+
+    def __init__(self):
+        pass
+
+    def clear(self):
+        Note.objects.all().delete()
+
+    def add_to_portion(self, file_name, file_content):
+        fields = Note(title=file_name, content=file_content)
+        self.portion.append(fields)
+
+    def commit(self):
+        Note.objects.bulk_create(self.portion, self.MAX_PORTION_SIZE)
+        self.portion.clear()
+
+    def search(self, file_name=None, file_content=None, page_number=1):
+        filter = {}
+        if file_name:
+            filter['title__contains'] = file_name
+
+        if file_content:
+            filter['content__contains'] = file_content
+
+        results = list(Note.objects.filter(**filter).values('title', 'content'))
+        return dict(results=results, count=len(results))
+
+
+def get_class_name(camel_case):
+    return 'Uploader{}'.format(camel_case.title().replace('_', ''))
+
+
 def run_initiator(downloader, args_downloader, uploader, args_uploader):
     downloader = globals()['download_from_{}'.format(downloader)]
-    uploader = globals()['Uploader{}'.format(uploader.title())](*args_uploader)
+    uploader = globals()[get_class_name(uploader)](*args_uploader)
     uploader.clear()
     portion_size = 0
     for file_name, file_content in downloader(*args_downloader):
@@ -161,7 +197,7 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
 
 
 def search(uploader, args_uploader, file_name=None, file_content=None):
-    uploader = globals()['Uploader{}'.format(uploader.title())](*args_uploader)
+    uploader = globals()[get_class_name(uploader)](*args_uploader)
     return uploader.search(file_name, file_content)
 
 
