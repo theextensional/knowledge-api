@@ -7,6 +7,8 @@ import requests
 from firebase_admin import credentials, firestore
 from typesense import Client
 
+from note.models import Note
+
 
 def download_from_github_archive(owner, repo, directory):
     response = requests.get('https://github.com/{}/{}/archive/refs/heads/main.zip'.format(owner, repo))
@@ -144,9 +146,43 @@ class UploaderTypesense:
         return dict(results=results, count=res['found'])
 
 
+class UploaderDjangoServer:
+    MAX_PORTION_SIZE = 400
+    portion = []
+
+    def __init__(self):
+        pass
+
+    def clear(self):
+        Note.objects.all().delete()
+
+    def add_to_portion(self, file_name, file_content):
+        fields = Note(title=file_name, content=file_content)
+        self.portion.append(fields)
+
+    def commit(self):
+        Note.objects.bulk_create(self.portion, self.MAX_PORTION_SIZE)
+        self.portion.clear()
+
+    def search(self, file_name=None, file_content=None, page_number=1):
+        filter = {}
+        if file_name:
+            filter['title__contains'] = file_name
+
+        if file_content:
+            filter['content__contains'] = file_content
+
+        results = list(Note.objects.filter(**filter).values('title', 'content'))
+        return dict(results=results, count=len(results))
+
+
+def get_class_name(camel_case):
+    return 'Uploader{}'.format(camel_case.title().replace('_', ''))
+
+
 def run_initiator(downloader, args_downloader, uploader, args_uploader):
     downloader = globals()['download_from_{}'.format(downloader)]
-    uploader = globals()['Uploader{}'.format(uploader.title())](*args_uploader)
+    uploader = globals()[get_class_name(uploader)](*args_uploader)
     uploader.clear()
     portion_size = 0
     for file_name, file_content in downloader(*args_downloader):
@@ -161,36 +197,5 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
 
 
 def search(uploader, args_uploader, file_name=None, file_content=None):
-    uploader = globals()['Uploader{}'.format(uploader.title())](*args_uploader)
+    uploader = globals()[get_class_name(uploader)](*args_uploader)
     return uploader.search(file_name, file_content)
-
-
-if __name__ == '__main__':
-    GITHUB_OWNER = 'TVP-Support'
-    GITHUB_REPO = 'knowledge'
-    GITHUB_DIRECTORY = 'db'
-    GITHUB_TOKEN = ''
-
-    FIRESTORE_CERTIFICATE = 'knowledge.json'
-
-    TYPESENSE_SERVER = 'localhost'  # For Typesense Cloud use xxx.a1.typesense.net
-    TYPESENSE_PORT = '8108'  # For Typesense Cloud use 443
-    TYPESENSE_PROTOCOL = 'http'  # For Typesense Cloud use https
-    TYPESENSE_API_KEY = 'your_any_key'
-
-    DOWNLOADER = 'github_archive'
-    UPLOADER = 'typesense'
-
-    args_downloader = {
-        'github_archive': (GITHUB_OWNER, GITHUB_REPO, GITHUB_DIRECTORY),
-        'github_directory': (GITHUB_OWNER, GITHUB_REPO, GITHUB_DIRECTORY, GITHUB_TOKEN),
-    }
-    args_uploader = {
-        'firestore': (FIRESTORE_CERTIFICATE,),
-        'typesense': (TYPESENSE_SERVER, TYPESENSE_PORT, TYPESENSE_PROTOCOL, TYPESENSE_API_KEY),
-    }
-    #run_initiator(DOWNLOADER, args_downloader[DOWNLOADER], UPLOADER, args_uploader[UPLOADER])
-    results = search(UPLOADER, args_uploader[UPLOADER], file_name='Studio')
-    print(results['count'])
-    for result in results['results']:
-        print(result)
