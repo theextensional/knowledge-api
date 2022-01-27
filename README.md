@@ -161,5 +161,5 @@ https://docs.github.com/en/developers/webhooks-and-events/webhooks/about-webhook
 
 `python manage.py note_load` - загрузить знания из репозитория в базу. Дополнительные опции:
 - `--downloader` - указывает способ загрузки с гитхаба: `github_archive` - загружает весь архив репозитория и вынимает текст; `github_directory` - загружает каждый файл из директории `db`
-- `--uploader` - куда выгрузить знания: `firestore` - онлайн-хранилще Firestore; `typesense` - сервер полнотекстового поиска, `django_server` - данный сервре
+- `--uploader` - куда выгрузить знания: `firestore` - онлайн-хранилще Firestore; `typesense` - сервер полнотекстового поиска, `django_server` - данный сервер
 
