@@ -36,38 +36,41 @@ curl http://localhost:8108/health
 
 ### GitHub - выгрузка свежих изменений
 
-Тестирую на: https://github.com/TVP-Support/knowledge/commit/b5f3762c967f7e9eb77f4534e33de4fd421588b2
+Тестирую на: <https://github.com/TVP-Support/knowledge/commit/b5f3762c967f7e9eb77f4534e33de4fd421588b2>
 
 Выгрузка diff через GraphQL:
 
-- описание GraphQL: https://docs.github.com/en/graphql/guides
-- описание GraphQL: https://docs.github.com/en/graphql/guides/forming-calls-with-graphql#authenticating-with-graphql
-- https://coderoad.ru/18138885/Github-API-v3-%D0%B2%D1%8B%D0%B1%D0%BE%D1%80%D0%BA%D0%B0-diff-%D0%BA%D0%BE%D0%BD%D0%BA%D1%80%D0%B5%D1%82%D0%BD%D0%BE%D0%B3%D0%BE-%D0%BA%D0%BE%D0%BC%D0%BC%D0%B8%D1%82%D0%B0
-- https://stackoverflow.com/questions/64202547/how-to-compare-two-branches-in-github-with-graphql
-- получить коммиты: https://stackoverflow.com/questions/48285888/github-graphql-getting-a-repositorys-list-of-commits
+- описание GraphQL: <https://docs.github.com/en/graphql/guides>
+- описание GraphQL: <https://docs.github.com/en/graphql/guides/forming-calls-with-graphql#authenticating-with-graphql>
+- <https://coderoad.ru/18138885/Github-API-v3-%D0%B2%D1%8B%D0%B1%D0%BE%D1%80%D0%BA%D0%B0-diff-%D0%BA%D0%BE%D0%BD%D0%BA%D1%80%D0%B5%D1%82%D0%BD%D0%BE%D0%B3%D0%BE-%D0%BA%D0%BE%D0%BC%D0%BC%D0%B8%D1%82%D0%B0>
+- <https://stackoverflow.com/questions/64202547/how-to-compare-two-branches-in-github-with-graphql>
+- получить коммиты: <https://stackoverflow.com/questions/48285888/github-graphql-getting-a-repositorys-list-of-commits>
 
 Выгрузка diff через Rest:
 
-- Описание API всех категорий: https://docs.github.com/en/rest/reference
-- Описание API сравнения коммитов (категория "репозиторий"): https://docs.github.com/en/rest/reference/repos#compare-two-commits
-- https://coderoad.ru/26925312/GitHub-API-%D0%BA%D0%B0%D0%BA-%D1%81%D1%80%D0%B0%D0%B2%D0%BD%D0%B8%D1%82%D1%8C-2-%D0%BA%D0%BE%D0%BC%D0%BC%D0%B8%D1%82%D0%B0
+- Описание API всех категорий: <https://docs.github.com/en/rest/reference>
+- Описание API сравнения коммитов (категория "репозиторий"): <https://docs.github.com/en/rest/reference/repos#compare-two-commits>
+- <https://coderoad.ru/26925312/GitHub-API-%D0%BA%D0%B0%D0%BA-%D1%81%D1%80%D0%B0%D0%B2%D0%BD%D0%B8%D1%82%D1%8C-2-%D0%BA%D0%BE%D0%BC%D0%BC%D0%B8%D1%82%D0%B0>
 
 #### Пример REST API
 
-URL: GET https://api.github.com/repos/TVP-Support/knowledge/compare/755e7a25d70b04fb3243e207a235a213ea2a8596...b5f3762c967f7e9eb77f4534e33de4fd421588b2
+URL: GET <https://api.github.com/repos/TVP-Support/knowledge/compare/755e7a25d70b04fb3243e207a235a213ea2a8596...b5f3762c967f7e9eb77f4534e33de4fd421588b2>
 
 Заголовки HTTP:
+
 - Accept: application/vnd.github.v3+json
-	
+
 #### Пример GraphQL API
 
-URL: POST https://api.github.com/graphql
+URL: POST <https://api.github.com/graphql>
 
 Заголовки HTTP:
+
 - Content-Type: application/json
 - Authorization: bearer YourToken
 
 Body:
+
  ```GraphQL
 query getStartAndEndPoints {
   repository(owner:"TVP-Support", name:"knowledge") {
@@ -96,56 +99,17 @@ fragment internalBranchContent on Ref {
 
 #### Забор обновлений из репозитория базы знаний
 
-- О вебхуках: 
-https://docs.github.com/en/developers/webhooks-and-events/webhooks/about-webhooks
-- Реализации GraphQL: https://graphql.org/code/
-- Руководство: https://graphql.org/learn/queries/
+- О вебхуках:
+<https://docs.github.com/en/developers/webhooks-and-events/webhooks/about-webhooks>
+- Реализации GraphQL: <https://graphql.org/code/>
+- Руководство: <https://graphql.org/learn/queries/>
 - установка хуков на репозиторий:
-    - https://docs.github.com/en/rest/reference/repos#webhooks
-    - https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push
+  - <https://docs.github.com/en/rest/reference/repos#webhooks>
+  - <https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push>
 
-## Планируемое универсальное API сервера
+## API сервера
 
-### База знаний
-
-#### Поиск статьи
-
-- метод: `GET note/search`
-- аргументы:
-  - `title` - фраза для поиска по заголовку статьи,
-  - `content` - фраза для поиска по содержимому статьи,
-  - `source` - наименование базы, по которой произойдёт поиск; необязательный аргумент
-
-В случае успешного ответа возвращается:
-
-```json
-{
-  "success": true,
-  "data": {
-     "results": [
-       {
-         "title":"Заголовок статьи",
-         "content":"Содержимое статьи"
-       }
-     ]
-  }
-}
-```
-
-#### Добавление статьи
-
-- метод: `POST note/add`
-- аргументы:
-  - `title` - заголовок статьи
-  - `content` - содержимое статьи
-  - `source` - наименование базы, в которую добавится статья; необязательный аргумент
-
-#### Получение статьи
-
-- метод: `GET note/get`
-- аргументы:
-  - `title` - заголовок статьи
-  - `source` - наименование базы, из которой будет получена статья; необязательный аргумент
+[Документация API](https://github.com/TVP-Support/django_knowledge/wiki)
 
 ### База книг
 
@@ -164,5 +128,6 @@ https://docs.github.com/en/developers/webhooks-and-events/webhooks/about-webhook
 ## Django-команды сервера
 
 `python manage.py note_load` - загрузить знания из репозитория в базу. Дополнительные опции:
+
 - `--downloader` - указывает способ загрузки с гитхаба: `github_archive` - загружает весь архив репозитория и вынимает текст; `github_directory` - загружает каждый файл из директории `db`
 - `--uploader` - куда выгрузить знания: `firestore` - онлайн-хранилще Firestore; `typesense` - сервер полнотекстового поиска, `django_server` - данный сервер
