@@ -4,3 +4,5 @@ __pycache__/
 knowledge.json
 passenger_wsgi.py
 db.sqlite3
+django_knowledge/tmp/restart.txt
+.env
