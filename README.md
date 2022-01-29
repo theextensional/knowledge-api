@@ -23,6 +23,9 @@ git clone https://github.com/TVP-Support/django_knowledge
 
 ```
 
+Установить зависимости:
+`pip install -r requirments.txt`
+
 Добавление файла `.env` с настройками:
 ```text
 DEBUG=True
