@@ -7,6 +7,47 @@
 - добавления
 - удобные API- и GUI-инструменты для управления выгрузкой, наполнения и поиска даных из различных внешних систем. Например, чат боты, приложения для веб и смартфонов.
 
+## Запуск
+
+Если планируете заниматься разработкой, то загрузите из форка:
+```sh
+git init
+git remote add origin https://github.com/ваш_аккаунт/django_knowledge
+git pull origin main
+
+```
+
+Если не хотите заниматься разработкой, то просто склонируйте репозиторий:
+```sh
+git clone https://github.com/TVP-Support/django_knowledge
+
+```
+
+Добавление файла `.env` с настройками:
+```text
+DEBUG=True
+ALLOWED_HOSTS=*
+SECRET_KEY=your_secret_key
+
+GITHUB_OWNER=TVP-Support
+GITHUB_REPO=knowledge
+GITHUB_DIRECTORY=db
+GITHUB_TOKEN=your_token
+
+FIRESTORE_CERTIFICATE=knowledge.json
+
+TYPESENSE_SERVER=localhost
+TYPESENSE_PORT=8108
+TYPESENSE_PROTOCOL=http
+TYPESENSE_API_KEY=your_any_key
+
+DEFAULT_DOWNLOADER=github_archive
+DEFAULT_UPLOADER=django_server
+
+```
+
+`GITHUB_TOKEN` - токен доступа к репозиторию базы знаний. Необходим при использовании загрузчика `github_directory`
+
 ## Интеграция с сервисами хранения и поиска информации
 
 ### Настройка Typesense
