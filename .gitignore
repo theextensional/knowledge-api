@@ -3,6 +3,6 @@ __pycache__/
 *.py[cod]
 knowledge.json
 passenger_wsgi.py
-db.sqlite3
+sqlite3.db
 django_knowledge/tmp/restart.txt
 .env
