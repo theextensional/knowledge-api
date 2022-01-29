@@ -23,10 +23,20 @@ git clone https://github.com/TVP-Support/django_knowledge
 
 ```
 
-Установить зависимости:
+Установка зависимостей:
+
 `pip install -r requirments.txt`
 
-Добавление файла `.env` с настройками:
+Применение миграций:
+
+`python manage.py migrate`
+
+Запуск сервера:
+
+`python manage.py runserver`
+
+
+пример файла `.env` с настройками:
 ```text
 DEBUG=True
 ALLOWED_HOSTS=*
