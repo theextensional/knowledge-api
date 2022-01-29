@@ -2,3 +2,7 @@
 __pycache__/
 *.py[cod]
 knowledge.json
+passenger_wsgi.py
+sqlite3.db
+django_knowledge/tmp/restart.txt
+.env

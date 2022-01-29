@@ -5,4 +5,4 @@ firebase-admin
 requests
 typesense
 djangorestframework
-python-dotenv
+django-environ
