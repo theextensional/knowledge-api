@@ -35,7 +35,7 @@ python manage.py runserver
 
 Проверка доступности сервера:
 
-<http://127.0.0.1:8000/api/note/search/?title=query>
+<http://127.0.0.1:8000/api/v1/note/search/query/>
 
 HTTP/2 200 возвращает JSON ответ.
 
@@ -58,7 +58,7 @@ python manage.py note_load
 python manage.py note_load --downloader=github_archive --uploader=django_server
 ```
 
-<http://127.0.0.1:8000/api/note/search/?content=studio>
+<http://127.0.0.1:8000/api/v1/note/search/studio/>
 
 HTTP/2 200 возвращает JSON ответ с данными заметки `studio`.
 
