@@ -4,10 +4,17 @@ import os.path
 
 import firebase_admin
 import requests
+from django.conf import settings
+from django.db.models import Q
 from firebase_admin import credentials, firestore
 from typesense import Client
 
 from note.models import Note
+
+
+def get_root_url():
+    template_link = 'https://github.com/{}/{}/blob/main/{}/'
+    return template_link.format(settings.GITHUB_OWNER, settings.GITHUB_REPO, settings.GITHUB_DIRECTORY)
 
 
 def download_from_github_archive(owner, repo, directory):
@@ -164,7 +171,15 @@ class UploaderDjangoServer:
         Note.objects.bulk_create(self.portion, self.MAX_PORTION_SIZE)
         self.portion.clear()
 
-    def search(self, file_name=None, file_content=None, page_number=1):
+    def search(
+        self,
+        operator,
+        limit,
+        offset,
+        fields,
+        file_name=None,
+        file_content=None,
+    ):
         filter = {}
         if file_name:
             filter['title__contains'] = file_name
@@ -172,8 +187,16 @@ class UploaderDjangoServer:
         if file_content:
             filter['content__contains'] = file_content
 
-        results = list(Note.objects.filter(**filter).values('title', 'content'))
-        return dict(results=results, count=len(results))
+        notes = Note.objects
+        if len(filter) == 2 and operator == 'or':
+            notes = notes.filter(Q(title__contains=file_name) | Q(content__contains=file_content))
+        else:
+            notes = notes.filter(**filter)
+
+        count = notes.count()
+
+        results = list(notes[offset:limit+offset].values(*fields))
+        return dict(results=results, count=count)
 
 
 def get_class_name(camel_case):
@@ -196,6 +219,24 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
         uploader.commit()
 
 
-def search(uploader, args_uploader, file_name=None, file_content=None):
+def search(
+    uploader,
+    args_uploader,
+    operator,
+    limit,
+    offset,
+    fields,
+    file_name=None,
+    file_content=None,
+):
     uploader = globals()[get_class_name(uploader)](*args_uploader)
-    return uploader.search(file_name, file_content)
+    data = uploader.search(
+        operator,
+        limit,
+        offset,
+        fields,
+        file_name,
+        file_content,
+    )
+    data['path'] = get_root_url()
+    return data

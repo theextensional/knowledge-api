@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.encoding import uri_to_iri
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -10,9 +11,28 @@ from note.credentials import args_uploader
 
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,))
-def note_search(request):
-    title = request.GET.get('title')
-    content = request.GET.get('content')
+def note_search(request, query):
+    query = uri_to_iri(query)
+    search_by = request.GET.get('search-by', 'all')
+    if search_by not in ('content', 'title', 'all'):
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `search-by` parameter'})
+
+    file_name = query if search_by in ('title', 'all') else None
+    file_content = query if search_by in ('content', 'all') else None
+    operator = request.GET.get('operator', 'all')
+    limit = int(request.GET.get('limit', '10'))
+    offset = int(request.GET.get('offset', '0'))
+    fields = request.GET.get('fields', 'title')
+    fields = ('title', 'content') if fields == 'all' else (fields,)
     uploader = request.GET.get('source', settings.DEFAULT_UPLOADER)
-    results = search(uploader, args_uploader[uploader], file_name=title, file_content=content)
-    return Response(status=status.HTTP_200_OK, data={'success': True, 'data': results})
+    data = search(
+        uploader,
+        args_uploader[uploader],
+        operator=operator,
+        limit=limit,
+        offset=offset,
+        fields=fields,
+        file_name=file_name,
+        file_content=file_content,
+    )
+    return Response(status=status.HTTP_200_OK, data=data)
