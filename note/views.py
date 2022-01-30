@@ -19,7 +19,7 @@ def note_search(request, query):
 
     file_name = query if search_by in ('title', 'all') else None
     file_content = query if search_by in ('content', 'all') else None
-    operator = request.GET.get('operator', 'all')
+    operator = request.GET.get('operator', 'or')
     limit = int(request.GET.get('limit', '10'))
     offset = int(request.GET.get('offset', '0'))
     fields = request.GET.get('fields', 'title')
