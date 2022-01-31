@@ -17,12 +17,24 @@ def note_search(request, query):
     if search_by not in ('content', 'title', 'all'):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `search-by` parameter'})
 
+    fields = request.GET.get('fields', 'title')
+    if fields not in ('content', 'title', 'all'):
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `fields` parameter'})
+
+    operator = request.GET.get('operator', 'or')
+    if operator not in ('or', 'and'):
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `operator` parameter'})
+
+    limit = int(request.GET.get('limit', '10'))
+    if not (100 >= limit > 0):
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `limit` parameter'})
+
+    offset = int(request.GET.get('offset', '0'))
+    if not (offset >= 0):
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `offset` parameter'})
+
     file_name = query if search_by in ('title', 'all') else None
     file_content = query if search_by in ('content', 'all') else None
-    operator = request.GET.get('operator', 'or')
-    limit = int(request.GET.get('limit', '10'))
-    offset = int(request.GET.get('offset', '0'))
-    fields = request.GET.get('fields', 'title')
     fields = ('title', 'content') if fields == 'all' else (fields,)
     uploader = request.GET.get('source', settings.DEFAULT_UPLOADER)
     data = search(
