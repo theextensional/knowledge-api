@@ -18,8 +18,10 @@ def get_root_url():
 
 
 def download_from_github_archive(owner, repo, directory):
+    print('start downloading the archive')
     response = requests.get('https://github.com/{}/{}/archive/refs/heads/main.zip'.format(owner, repo))
     archive = io.BytesIO(response.content)
+    print('the archive is downloaded')
     with zipfile.ZipFile(archive) as archive_object:
         for member_name in archive_object.namelist():
             if not member_name.startswith('{}-main/{}/'.format(repo, directory)):
@@ -164,7 +166,12 @@ class UploaderDjangoServer:
         Note.objects.all().delete()
 
     def add_to_portion(self, file_name, file_content):
-        fields = Note(title=file_name, content=file_content)
+        fields = Note(
+            title=file_name,
+            content=file_content,
+            search_content=file_content.lower().replace('ё', 'е'),
+            search_title=file_name.lower().replace('ё', 'е'),
+        )
         self.portion.append(fields)
 
     def commit(self):
@@ -182,14 +189,16 @@ class UploaderDjangoServer:
     ):
         filter = {}
         if file_name:
-            filter['title__contains'] = file_name
+            file_name = file_name.lower().replace('ё', 'е')
+            filter['search_title__contains'] = file_name
 
         if file_content:
-            filter['content__contains'] = file_content
+            file_content = file_content.lower().replace('ё', 'е')
+            filter['search_content__contains'] = file_content
 
         notes = Note.objects
         if len(filter) == 2 and operator == 'or':
-            notes = notes.filter(Q(title__contains=file_name) | Q(content__contains=file_content))
+            notes = notes.filter(Q(search_title__contains=file_name) | Q(search_content__contains=file_content))
         else:
             notes = notes.filter(**filter)
 
@@ -208,15 +217,20 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
     uploader = globals()[get_class_name(uploader)](*args_uploader)
     uploader.clear()
     portion_size = 0
+    total_size = 0
     for file_name, file_content in downloader(*args_downloader):
         uploader.add_to_portion(file_name, file_content)
         portion_size += 1
         if portion_size == uploader.MAX_PORTION_SIZE:
             uploader.commit()
+            total_size += portion_size
             portion_size = 0
+            print('uploaded files into database:', total_size)
 
     if portion_size:
         uploader.commit()
+
+    print('uploading is finished. Totally uploaded:', total_size + portion_size)
 
 
 def search(
