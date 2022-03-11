@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.utils.encoding import uri_to_iri
 from rest_framework.decorators import api_view, renderer_classes
@@ -55,22 +57,6 @@ def note_search(request, query):
 @api_view(('POST',))
 @renderer_classes((JSONRenderer,))
 def note_hook(request):
-    import time, os.path
-    fname = '{}.txt'.format(time.time())
-    fname = os.path.join(os.path.dirname(__file__), fname)
-    if request.data.get('User-Agent') != 'insomnia/2021.7.2':
-        import json
-        with open(fname, 'w') as f:
-            try:
-                f.write(json.dumps(request.data))
-            except Exception as e:
-                f.write('{}\n\n----------\n\n'.format(e))
-        with open(fname + ".headers.txt", 'w') as f:
-            try:
-                f.write(json.dumps(dict(request._request.headers)))
-            except Exception as e:
-                f.write('{}\n\n----------\n\n'.format(e))
-
     data = {'files': {}}
     action = request._request.headers['X-Github-Event']
     if action == 'push':
