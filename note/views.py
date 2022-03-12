@@ -8,7 +8,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 import requests
 
-from note.load_from_github import GITHUB_ROOT_LINK_TEMPLATE, search
+from note.load_from_github import get_root_url, search
 from note.credentials import args_uploader
 from note.models import Note
 
@@ -63,7 +63,7 @@ def note_hook(request):
         repository = request.data.get('repository')
         owner_name = repository.get('name')
         repository_name = repository.get('owner').get('name')
-        link = GITHUB_ROOT_LINK_TEMPLATE.format(owner_name, repository_name, '')
+        link = get_root_url(owner=owner_name, repository=repository_name)
         session = requests.Session()
         prefix = settings.GITHUB_DIRECTORY
         removed = data['files'].setdefault('removed', set())
@@ -97,17 +97,18 @@ def note_hook(request):
         for action_type, files in data['files'].items():
             for file in files:
                 title, _ = os.path.splitext(os.path.basename(file))
+                url = f'{link}/{file}'
                 if action_type == 'removed':
                     Note.objects.filter(title=title).delete()
                 elif action_type == 'modified':
-                    request = session.get('{}{}'.format(link, file))
+                    request = session.get(url)
                     content = request.text
                     note = Note.objects.filter(title=title).first()
                     note.content = content
                     note.search_content = content.lower().replace('ё', 'е')
                     note.save()
                 elif action_type == 'added':
-                    request = session.get('{}{}'.format(link, file))
+                    request = session.get(url)
                     content = request.text
                     note = Note(
                         title=title,

@@ -11,11 +11,13 @@ from typesense import Client
 
 from note.models import Note
 
-GITHUB_ROOT_LINK_TEMPLATE = 'https://github.com/{}/{}/blob/main/{}'
 
-
-def get_root_url():
-    return GITHUB_ROOT_LINK_TEMPLATE.format(settings.GITHUB_OWNER, settings.GITHUB_REPO, settings.GITHUB_DIRECTORY)
+def get_root_url(
+    directory: str = '',
+    owner: str = settings.GITHUB_OWNER,
+    repo: str = settings.GITHUB_REPO,
+):
+    return f'https://github.com/{owner}/{repo}/blob/main{directory}'
 
 
 def download_from_github_archive(owner, repo, directory):
