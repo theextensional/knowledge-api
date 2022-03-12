@@ -11,7 +11,7 @@ from typesense import Client
 
 from note.models import Note
 
-GITHUB_ROOT_LINK_TEMPLATE = 'https://github.com/{}/{}/blob/main/{}/'
+GITHUB_ROOT_LINK_TEMPLATE = 'https://github.com/{}/{}/blob/main/{}'
 
 
 def get_root_url():
@@ -25,7 +25,7 @@ def download_from_github_archive(owner, repo, directory):
     print('the archive is downloaded')
     with zipfile.ZipFile(archive) as archive_object:
         for member_name in archive_object.namelist():
-            if not member_name.startswith('{}-main/{}/'.format(repo, directory)):
+            if not member_name.startswith('{}-main/{}'.format(repo, directory)):
                 continue
 
             member_info = archive_object.getinfo(member_name)
@@ -253,5 +253,5 @@ def search(
         file_name,
         file_content,
     )
-    data['path'] = get_root_url()
+    data['path'] = '{}/'.format(get_root_url())
     return data

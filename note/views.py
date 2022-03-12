@@ -58,12 +58,12 @@ def note_search(request, query):
 @renderer_classes((JSONRenderer,))
 def note_hook(request):
     data = {'files': {}}
-    action = request._request.headers['X-Github-Event']
+    action = request._request.headers.get('X-Github-Event')
     if action == 'push':
         repository = request.data.get('repository')
         owner_name = repository.get('name')
         repository_name = repository.get('owner').get('name')
-        link = GITHUB_ROOT_LINK_TEMPLATE.format(owner_name, repository_name, settings.GITHUB_DIRECTORY)
+        link = GITHUB_ROOT_LINK_TEMPLATE.format(owner_name, repository_name, '')
         session = requests.Session()
         prefix = settings.GITHUB_DIRECTORY
         removed = data['files'].setdefault('removed', set())
@@ -98,18 +98,16 @@ def note_hook(request):
             for file in files:
                 title, _ = os.path.splitext(os.path.basename(file))
                 if action_type == 'removed':
-                    Note.objects.filter(title=title).first().delete()
+                    Note.objects.filter(title=title).delete()
                 elif action_type == 'modified':
-                    file_link = '{}{}.md'.format(link, file)
-                    request = session.get(file_link)
+                    request = session.get('{}{}'.format(link, file))
                     content = request.text
                     note = Note.objects.filter(title=title).first()
                     note.content = content
                     note.search_content = content.lower().replace('ё', 'е')
                     note.save()
                 elif action_type == 'added':
-                    file_link = '{}{}.md'.format(link, file)
-                    request = session.get(file_link)
+                    request = session.get('{}{}'.format(link, file))
                     content = request.text
                     note = Note(
                         title=title,
