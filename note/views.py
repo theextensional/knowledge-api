@@ -61,9 +61,12 @@ def note_hook(request):
     action = request._request.headers.get('X-Github-Event')
     if action == 'push':
         repository = request.data.get('repository')
-        owner_name = repository.get('name')
-        repository_name = repository.get('owner').get('name')
-        link = get_root_url(owner=owner_name, repo=repository_name)
+        repo_name = repository.get('name')
+        owner_name = repository.get('owner').get('name')
+        if owner_name != settings.GITHUB_OWNER or repo_name != settings.GITHUB_REPO:
+            return Response(status=status.HTTP_200_OK, data={})
+
+        link = get_root_url(owner=owner_name, repo=repo_name)
         session = requests.Session()
         prefix = settings.GITHUB_DIRECTORY
         removed = data['files'].setdefault('removed', set())
