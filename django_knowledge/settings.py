@@ -11,6 +11,7 @@ env = environ.Env(
 environ.Env.read_env(env_file=os.path.join(BASE_DIR, '.env'))
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+DEBUG = env('DEBUG')
 ROOT_URLCONF = 'django_knowledge.urls'
 WSGI_APPLICATION = 'django_knowledge.wsgi.application'
 
