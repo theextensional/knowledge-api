@@ -64,7 +64,7 @@ def note_hook(request):
         repo_name = repository.get('name')
         owner_name = repository.get('owner').get('name')
         if owner_name != settings.GITHUB_OWNER or repo_name != settings.GITHUB_REPO:
-            return Response(status=status.HTTP_200_OK, data={})
+            return Response(status=status.HTTP_200_OK, data={'message': 'repository or owner name has no access'})
 
         link = get_root_url(owner=owner_name, repo=repo_name)
         session = requests.Session()
