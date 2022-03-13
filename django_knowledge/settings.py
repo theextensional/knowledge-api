@@ -14,6 +14,7 @@ ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 DEBUG = env('DEBUG')
 ROOT_URLCONF = 'django_knowledge.urls'
 WSGI_APPLICATION = 'django_knowledge.wsgi.application'
+STATIC_URL = '/static/'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
