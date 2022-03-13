@@ -8,7 +8,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 import requests
 
-from note.load_from_github import get_root_url, search
+from note.load_from_github import prepare_to_search, get_root_url, search
 from note.credentials import args_uploader
 from note.models import Note
 
@@ -61,9 +61,12 @@ def note_hook(request):
     action = request._request.headers.get('X-Github-Event')
     if action == 'push':
         repository = request.data.get('repository')
-        owner_name = repository.get('name')
-        repository_name = repository.get('owner').get('name')
-        link = get_root_url(owner=owner_name, repository=repository_name)
+        repo_name = repository.get('name')
+        owner_name = repository.get('owner').get('name')
+        if owner_name != settings.GITHUB_OWNER or repo_name != settings.GITHUB_REPO:
+            return Response(status=status.HTTP_200_OK, data={'message': 'repository or owner name has no access'})
+
+        link = get_root_url(owner=owner_name, repo=repo_name)
         session = requests.Session()
         prefix = settings.GITHUB_DIRECTORY
         removed = data['files'].setdefault('removed', set())
@@ -105,16 +108,16 @@ def note_hook(request):
                     content = request.text
                     note = Note.objects.filter(title=title).first()
                     note.content = content
-                    note.search_content = content.lower().replace('ё', 'е')
+                    note.search_content = prepare_to_search(content)
                     note.save()
                 elif action_type == 'added':
                     request = session.get(url)
                     content = request.text
                     note = Note(
                         title=title,
-                        search_title=title.lower().replace('ё', 'е'),
+                        search_title=prepare_to_search(title),
                         content=content,
-                        search_content=content.lower().replace('ё', 'е'),
+                        search_content=prepare_to_search(content),
                     )
                     note.save()
 

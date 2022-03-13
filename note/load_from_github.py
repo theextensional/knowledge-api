@@ -20,6 +20,10 @@ def get_root_url(
     return f'https://github.com/{owner}/{repo}/blob/main{directory}'
 
 
+def prepare_to_search(value):
+    return value.lower().replace('ё', 'е')
+
+
 def download_from_github_archive(owner, repo, directory):
     print('start downloading the archive')
     response = requests.get('https://github.com/{}/{}/archive/refs/heads/main.zip'.format(owner, repo))
@@ -172,8 +176,8 @@ class UploaderDjangoServer:
         fields = Note(
             title=file_name,
             content=file_content,
-            search_content=file_content.lower().replace('ё', 'е'),
-            search_title=file_name.lower().replace('ё', 'е'),
+            search_content=prepare_to_search(file_content),
+            search_title=prepare_to_search(file_name),
         )
         self.portion.append(fields)
 
@@ -192,11 +196,11 @@ class UploaderDjangoServer:
     ):
         filter = {}
         if file_name:
-            file_name = file_name.lower().replace('ё', 'е')
+            file_name = prepare_to_search(file_name)
             filter['search_title__contains'] = file_name
 
         if file_content:
-            file_content = file_content.lower().replace('ё', 'е')
+            file_content = prepare_to_search(file_content)
             filter['search_content__contains'] = file_content
 
         notes = Note.objects
