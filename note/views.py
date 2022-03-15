@@ -66,7 +66,7 @@ def note_hook(request):
         if owner_name != settings.GITHUB_OWNER or repo_name != settings.GITHUB_REPO:
             return Response(status=status.HTTP_200_OK, data={'message': 'repository or owner name has no access'})
 
-        link = get_root_url(owner=owner_name, repo=repo_name)
+        link = get_root_url(owner=owner_name, repo=repo_name, raw=True)
         session = requests.Session()
         prefix = settings.GITHUB_DIRECTORY
         removed = data['files'].setdefault('removed', set())
