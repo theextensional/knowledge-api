@@ -16,8 +16,11 @@ def get_root_url(
     directory: str = '',
     owner: str = settings.GITHUB_OWNER,
     repo: str = settings.GITHUB_REPO,
+    raw: bool = False,
 ):
-    return f'https://github.com/{owner}/{repo}/blob/main{directory}'
+    url_raw = f'https://raw.githubusercontent.com/{owner}/{repo}/main{directory}'
+    url_page = f'https://github.com/{owner}/{repo}/blob/main{directory}'
+    return url_raw if raw else url_page
 
 
 def prepare_to_search(value):
