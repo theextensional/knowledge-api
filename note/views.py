@@ -1,7 +1,7 @@
+from urllib.parse import unquote
 import os
 
 from django.conf import settings
-from django.utils.encoding import uri_to_iri
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -16,7 +16,7 @@ from note.models import Note
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,))
 def note_search(request, query):
-    query = uri_to_iri(query)
+    query = unquote(query)
     search_by = request.GET.get('search-by', 'all')
     if search_by not in ('content', 'title', 'all'):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `search-by` parameter'})
