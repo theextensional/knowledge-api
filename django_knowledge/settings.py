@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django_knowledge',
     'rest_framework',
     'note',
+    'pages',
 ]
 
 MIDDLEWARE = [
@@ -81,6 +82,10 @@ LOGGING = {
         },
     },
 }
+
+REDIS_HOST = env('REDIS_HOST')
+REDIS_PORT = env('REDIS_PORT')
+REDIS_PASSWORD = env('REDIS_PASSWORD')
 
 # KNOWLEDGE
 
