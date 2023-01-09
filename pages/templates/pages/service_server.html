@@ -1,0 +1,85 @@
+{% extends 'template.html' %}
+
+{% block content %}
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+
+        .content {
+            background-color: #eeeeee;
+            border: 1px solid #bbbbbb;
+            border-radius: 5px;
+            padding: 10px 5px 10px 15px;
+        }
+    </style>
+
+    <h1>Веб-сервер API базы знаний</h1>
+
+    <h2>Обслуживание</h2>
+
+    <div class="content">
+        <form action="" id="command_buttons">
+            <input type="button" value="Обновить базу" data-command="update_db">
+            <input type="button" value="Задеплоить свежий PR" data-command="deploy_server">
+            <input type="button" value="Перезапустить сервер" data-command="restart_server">
+        </form>
+
+        <div><pre id="result"></pre></div>
+    </div>
+
+    <h2>Статистика</h2>
+
+    <div class="content">
+        Заметок в базе: {{ count_notes }}
+
+        <h3>Последние запросы:</h3>
+
+        <table id="search_log"></table>
+    </div>
+
+    <script>
+        function run_command(event) {
+            $.ajax({
+              url: "/",
+              data: {
+                command: event.target.dataset.command
+              },
+              success: function( result ) {
+                $( "#result" ).text(result.message);
+              },
+              method: "post"
+            });
+        }
+
+        function update_search_log() {
+            $.ajax({
+              url: "/",
+              data: {
+                command: 'get_search_log'
+              },
+              success: function( result ) {
+                 let tr, td, log;
+                for (log of result.message) {
+                    tr = document.createElement("tr");
+                    td = document.createElement("td");
+                    td.textContent = log.time;
+                    tr.append(td);
+                    td = document.createElement("td");
+                    td.textContent = log.query;
+                    tr.append(td);
+                    $( "#search_log" )[0].append(tr);
+                 }
+              },
+              method: "post"
+            });
+        }
+
+        $('#command_buttons').on("click", run_command);
+        update_search_log();
+    </script>
+
+{% endblock %}

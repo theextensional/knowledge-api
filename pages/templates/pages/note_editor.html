@@ -1,0 +1,162 @@
+{% extends 'template.html' %}
+
+{% block title %}Редактор заметок{% endblock %}
+{% block page_title %}Редактор заметок{% endblock %}
+
+{% block content %}
+    {% for note in notes %}
+        <div>
+            <span>{{ note.title }}</span>
+        </div>
+    {% endfor %}
+
+<p>Все заметки хранятся внутри браузера</p>
+
+<div class="row">
+    <div class="col-md-3">
+        <input type="button" value="Новая заметка" class="btn btn-primary" id="button_create_note">
+        <ul id='notes_list'></ul>
+    </div>
+    <div class="col-md-8">
+        <form id="form_note_editor">
+            <input name="title" type="text" placeholder="Введите название" class="form-control">
+            <br>
+            <textarea name="body" id="" placeholder="Введите текст в формате Markdown" class="form-control" style="height: 400px;"></textarea>
+        </form>
+        <input type="button" value="Удалить" id="button_delete_note" class="btn btn-primary">
+    </div>
+</div>
+
+
+<style>
+    #notes_list li {
+        cursor: pointer;
+    }
+    #notes_list li.current_note {
+        background: grey;
+    }
+</style>
+
+<script>
+    var cur_note_li = null;
+    var max_note_id = Number(localStorage.getItem("max_note_id") || '0');
+    var cur_note_id = null;
+
+    function set_default_note() {
+        children = $('#notes_list')[0].children;
+        if (children) {
+            note_id = children[0].id.slice(4);
+            set_cur_note_li(note_id);
+        } else {
+            form_note_editor.title.value = "";
+            form_note_editor.body.value = "";
+        }
+    }
+
+    function set_title_of_cur(title) {
+        let title_key = "title" + cur_note_id.toString();
+        localStorage.setItem(title_key, title);
+        cur_note_li.textContent = title;
+    }
+
+    function set_body_of_cur(body) {
+        let body_key = "body" + cur_note_id.toString();
+        localStorage.setItem(body_key, body);
+    }
+
+    function get_title(note_id) {
+        let title_key = "title" + note_id.toString();
+        return localStorage.getItem(title_key);
+    }
+    
+    function get_body(note_id) {
+        let body_key = "body" + note_id.toString();
+        return localStorage.getItem(body_key);
+    }
+    
+    function set_cur_note_li(note_id) {
+        let li = $('#note' + note_id.toString())[0]
+        if (cur_note_li) {
+            //if (form_note_editor.title.value == "" && form_note_editor.body.value == "") {
+            //    cur_note_li.remove();
+            //} else {
+                cur_note_li.classList.remove('current_note');
+            //}
+        }
+        cur_note_id = note_id;
+        cur_note_li = li;
+        cur_note_li.classList.add('current_note');
+        form_note_editor.title.value = get_title(note_id);
+        form_note_editor.body.value = get_body(note_id);
+    }
+    
+    function add_note_to_list(title, note_id) {
+        let li = document.createElement('li');
+        li.textContent = title;
+        li.dataset.note_id = note_id;
+        li.id = "note" + note_id.toString();
+        notes_list.append(li);
+    }
+
+    function create_note() {
+        form_note_editor.title.value = "";
+        form_note_editor.body.value = "";
+
+        max_note_id += 1;
+        localStorage.setItem("max_note_id", max_note_id);
+        return max_note_id;
+    }
+    
+    function delete_note(note_id) {
+        localStorage.removeItem('tile' + note_id.toString());
+        localStorage.removeItem('body' + note_id.toString());
+        $('#note' + note_id.toString())[0].remove();
+    }
+
+    window.addEventListener("load", function() {
+        let key, note_id, title;
+        for (key in localStorage) {
+            if (key.startsWith("title")) {
+                note_id = key.slice(5);
+                title = localStorage.getItem(key);
+                add_note_to_list(title, note_id);
+            }
+        }
+        set_default_note();
+
+        $(form_note_editor.title).change(function(event) {
+            if (cur_note_li) {
+                set_title_of_cur(event.target.value);
+                //cur_note_li.textContent = event.target.value;
+            }
+        });
+
+        $(form_note_editor.body).change(function(event) {
+            if (cur_note_li) {
+                set_body_of_cur(event.target.value);
+            }
+        });
+
+        $("#button_create_note").click(function() {
+            let note_id = create_note();
+            add_note_to_list("", note_id);
+            set_cur_note_li(note_id);
+        })
+
+        $(notes_list).click(function(event) {
+            let li = event.target;
+            if (li.tagName == 'LI') {
+                set_cur_note_li(li.dataset.note_id);
+            }
+        })
+        
+        $('#button_delete_note').click(function() {
+            if (cur_note_id) {
+                delete_note(cur_note_id);
+                set_default_note();
+            }
+        })
+    });
+</script>
+
+{% endblock %}

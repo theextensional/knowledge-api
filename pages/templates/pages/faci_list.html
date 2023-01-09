@@ -1,0 +1,55 @@
+{% extends 'template.html' %}
+
+{% block title %}
+    Холсты фасилитации
+    {% if request.user.is_authenticated %}
+        (<a href="{% url 'faci_new' %}">создать</a>)
+    {% endif %}
+{% endblock %}
+{% block page_title %}Холсты фасилитации{% endblock %}
+
+{% block content %}
+    <style>
+        .faci_card {
+            border: #ffd9d9 solid 1px;
+            margin-top: 10px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .faci_card_header {
+            display: block;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .faci_card_header > span {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .faci_card_header .aim_type {
+            width: 25%;
+        }
+        .faci_card_body {
+            font-size: 12px;
+        }
+    </style>
+
+    {% for faci in facis %}
+        <div class="faci_card">
+            <a href="{% url 'faci_editor' faci.id %}" class="faci_card_header">
+                <span class="aim_type">{{ faci.aim_type }}</span>
+                <span>{{ faci.aim }}</span>
+            </a>
+            <div class="faci_card_body">
+                <span>
+                    {% if faci.dt_meeting %}
+                        Назначено на {{ faci.dt_meeting }}
+                    {% else %}
+                        Дата не назначена
+                    {% endif %}
+                </span>
+                <span>Автор: {{ faci.user_creator__username }}</span>
+                <span>Итоги:</span>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

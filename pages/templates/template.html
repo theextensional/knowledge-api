@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="MobileOptimized" content="320" />
+    <title>Веб-сервер API базы знаний | {% block page_title %}No content{% endblock %}</title>
+    <script src="{% static 'pages/extern/jquery-3.6.0.min.js' %}"></script>
+    <link href="{% static 'pages/extern/bootstrap.min.css' %}" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous"> 
+</head>
+
+<body>
+    <style>
+        .submenu_box {
+            position: absolute;
+            background: white;
+            z-index: 1000;
+            border: 2px solid lightgrey;
+            padding: 0 5px 5px 5px;
+            border-radius: 3px;
+            border-width: 0 2px 2px 2px;
+            display: none;
+        }
+        #login_box .form-control {
+            width: auto !important;
+        }
+    </style>
+    <div class="container">
+        <ul class="nav nav-tabs">
+            {% url 'about_project' as url %}
+            <li class="nav-item">
+                <a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">О проекте</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Карта ресурсов</a>
+                <ul class="dropdown-menu">
+                    {% url 'map_info_resources' as url %}
+                    <li>
+                        <a class="dropdown-item{% if request.path == url %} active{% endif %}" href="{{ url }}">Информационные</a>
+                    </li>
+                    {% url 'map_material_resources' as url %}
+                    <li>
+                        <a class="dropdown-item{% if request.path == url %} active{% endif %}" href="{{ url }}">Материальные</a>
+                    </li>
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Приложения</a>
+                <ul class="dropdown-menu">
+                    {% url 'note_editor' as url %}
+                    <li>
+                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Редактор заметок</a>
+                    </li>
+                    {% url 'faci_list' as url %}
+                    <li>
+                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Холсты фасилитации</a>
+                    </li>
+                </ul>
+            </li>
+            {# {% url 'service_server' as url %}#}
+            {#<li class="nav-item">#}
+            {#    <a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">Обслуживание сервера</a>#}
+            {#</li>#}
+            <li class="nav-item" style="position: relative">
+                <input type="button" value="{% if request.user.is_authenticated %}{{ request.user.username }}{% else %}Войти{% endif %}" class="nav-link" id="btn_toggle_login_box">
+                <div id="login_box" class="submenu_box">
+                    {% if request.user.is_authenticated %}
+                        Вы авторизованы <br>
+                        <form>
+                            <input class="form-control" type="button" value="Выйти" name="logout" id="logout_button"/>
+                        </form>
+                    {% else %}
+                        <form>
+                            <table>
+                            
+                            <tr>
+                              <td><label for="id_for_label_username">Пользователь</label></td>
+                              <td><input class="form-control" type="text" name="username" id="id_for_label_username"></td>
+                            </tr>
+
+                            <tr>
+                              <td><label for="id_for_label_password">Пароль</label></td>
+                              <td><input class="form-control" type="password" name="password" id="id_for_label_password"></td>
+                            </tr>
+                            </table>
+
+                            <input class="form-control" type="button" value="Войти" name="login" id="login_button"/>
+                        </form>
+                    {% endif %}
+                </div>
+            </li>
+            {% if not request.user.is_authenticated %}
+                <li class="nav-item" style="position: relative">
+                    <input type="button" value="Регистрация" class="nav-link" id="btn_toggle_registration_box">
+                    <div id="registration_box" class="submenu_box">
+                        <form>
+                            registrion
+                        </form>
+                    </div>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <div class="container">
+        <h1>{% block title %}No content{% endblock %}</h1>
+        {% block content %}No content{% endblock %}
+    </div>
+
+    <script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script> 
+    <script>
+        $('#btn_toggle_login_box').click(function(event) {
+            $('#login_box').toggle();
+        });
+        $('#btn_toggle_registration_box').click(function(event) {
+            $('#registration_box').toggle();
+        });
+        
+        {% if request.user.is_authenticated %}
+            $('#logout_button').click(function(event) {
+                $.ajax({
+                    url: "/logout/",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                    },
+                    dataType: 'json',
+                    data: {},
+                    success: function(result) {
+                        console.log(result);
+                    },
+                    error: function(jqxhr, a, b) {
+                        console.log('error');
+                        console.log(jqxhr.responseText);
+                    },
+                    method: "post"
+                });
+            });
+        {% else %}
+            $('#login_button').click(function(event) {
+                $.ajax({
+                    url: "/login/",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                    },
+                    dataType: 'json',
+                    data: $(event.target.form).serialize(),
+                    success: function(result) {
+                        console.log(result);
+                    },
+                    error: function(jqxhr, a, b) {
+                        console.log('error');
+                        console.log(jqxhr.responseText);
+                    },
+                    method: "post"
+                });
+            });
+        {% endif %}
+    </script>
+</body>

@@ -1,10 +1,13 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
-from note.views import note_search, note_hook
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/note/search/<str:query>/', note_search, name='api_note_search'),
-    path('api/v1/note/hook/', note_hook, name='api_note_hook'),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('api/v1/note/', include('note.urls_api')),
+    path('api/v1/faci/', include('faci.urls_api')),
+    path('note/', include('note.urls')),
+    path('faci/', include('faci.urls')),
+    path('', include('pages.urls')),
 ]

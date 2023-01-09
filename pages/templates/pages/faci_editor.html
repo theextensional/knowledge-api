@@ -1,0 +1,144 @@
+{% extends 'template.html' %}
+
+{% block title %}
+    {% if faci_form.instance.id %} <a style="text-decoration: none;" href="{% url 'faci_list' %}">🡄</a> Редактирование холста {% else %} Новый холст {% endif %}
+{% endblock %}
+{% block page_title %} Холст фасилитации {% endblock %}
+
+{% block content %}
+    <form action="" id='faci_form'>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="card">
+                    <div class="card-header">
+                        Цель
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ faci_form.aim.id_for_label }}" class="form-label">{{ faci_form.aim.label }}</label>
+                            {{ faci_form.aim }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ faci_form.if_not_reached.id_for_label }}" class="form-label">{{ faci_form.if_not_reached.label }}</label>
+                            {{ faci_form.if_not_reached }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ faci_form.aim_type.id_for_label }}" class="form-label">{{ faci_form.aim_type.label }}</label>
+                            {{ faci_form.aim_type }}
+                        </div>
+                    </div>
+                </div>
+                
+                <br>
+
+                <div class="card">
+                    <div class="card-header">
+                        Участники
+                    </div>
+                    <div class="card-body">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-header">
+                        Повестка
+                    </div>
+                    <div class="card-body">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-header">
+                        Подготовка
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ faci_form.dt_meeting.id_for_label }}" class="form-label">{{ faci_form.dt_meeting.label }}</label>
+                            {{ faci_form.dt_meeting }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ faci_form.duration.id_for_label }}" class="form-label">{{ faci_form.duration.label }}</label>
+                            {{ faci_form.duration }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ faci_form.place.id_for_label }}" class="form-label">{{ faci_form.place.label }}</label>
+                            {{ faci_form.place }}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="card">
+                    <div class="card-header">
+                        Ключевые мысли
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ faci_form.key_thoughts.id_for_label }}" class="form-label">{{ faci_form.key_thoughts.label }}</label>
+                            {{ faci_form.key_thoughts }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ faci_form.parked_thoughts.id_for_label }}" class="form-label">{{ faci_form.parked_thoughts.label }}</label>
+                            {{ faci_form.parked_thoughts }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-header">
+                        Договорённости
+                    </div>
+                    <div class="card-body">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        function save_form(event) {
+            //data = {
+            //    aim: event.target.form.aim.value,
+            //    aim_type: event.target.form.aim_type.value,
+            //    if_not_reached: event.target.form.if_not_reached.value,
+            //};
+            //data[event.target.name] = event.target.value;
+            $.ajax({
+                url: "",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                //contentType: "application/json",
+                data: $(event.target.form).serialize(),//JSON.stringify(data),
+                success: function(result) {
+                    if (result['id']) {
+                        try {
+                            history.pushState(null, null, location.href.replace('/new', '/'+result['id']));
+                            return;
+                        } catch(e) {}
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+        
+        $('#faci_form').change(save_form);
+    </script>
+{% endblock %}
