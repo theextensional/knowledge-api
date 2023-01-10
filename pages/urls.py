@@ -6,6 +6,7 @@ from pages.views import (
     LogoutView,
     MapInfoResourcesView,
     MapMaterialResourcesView,
+    RegistrationView,
     ServiceServerView,
 )
 
@@ -15,5 +16,6 @@ urlpatterns = [
     path('service_server', ServiceServerView.as_view(), name='service_server'),
     path('login/', LoginView.as_view(), name='custom_login'),
     path('logout/', LogoutView.as_view(), name='custom_logout'),
+    path('registrate/', RegistrationView.as_view(), name='custom_registration'),
     path('', AboutProjectView.as_view(), name='about_project'),
 ]

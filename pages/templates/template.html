@@ -23,7 +23,7 @@
             border-width: 0 2px 2px 2px;
             display: none;
         }
-        #login_box .form-control {
+        #login_box .form-control, #registration_box .form-control {
             width: auto !important;
         }
     </style>
@@ -69,24 +69,23 @@
                     {% if request.user.is_authenticated %}
                         Вы авторизованы <br>
                         <form>
-                            <input class="form-control" type="button" value="Выйти" name="logout" id="logout_button"/>
+                            <input class="form-control" type="button" value="Выйти" id="logout_button"/>
                         </form>
                     {% else %}
                         <form>
                             <table>
-                            
-                            <tr>
-                              <td><label for="id_for_label_username">Пользователь</label></td>
-                              <td><input class="form-control" type="text" name="username" id="id_for_label_username"></td>
-                            </tr>
-
-                            <tr>
-                              <td><label for="id_for_label_password">Пароль</label></td>
-                              <td><input class="form-control" type="password" name="password" id="id_for_label_password"></td>
-                            </tr>
+                                <tr>
+                                  <td><label for="id_for_label_username">Пользователь</label></td>
+                                  <td><input required class="form-control" type="text" name="username" id="id_for_label_username"></td>
+                                </tr>
+    
+                                <tr>
+                                  <td><label for="id_for_label_password">Пароль</label></td>
+                                  <td><input required class="form-control" type="password" name="password" id="id_for_label_password"></td>
+                                </tr>
                             </table>
 
-                            <input class="form-control" type="button" value="Войти" name="login" id="login_button"/>
+                            <input class="form-control" type="button" value="Войти" id="login_button"/>
                         </form>
                     {% endif %}
                 </div>
@@ -96,7 +95,28 @@
                     <input type="button" value="Регистрация" class="nav-link" id="btn_toggle_registration_box">
                     <div id="registration_box" class="submenu_box">
                         <form>
-                            registrion
+                            <table>
+                                <tr>
+                                  <td><label for="id_for_label_username">Пользователь:</label></td>
+                                  <td><input required class="form-control" type="text" name="username" id="id_for_label_username"></td>
+                                </tr>
+    
+                                <tr>
+                                  <td><label for="id_for_label_email">E-mail:</label></td>
+                                  <td><input required class="form-control" type="text" name="email" id="id_for_label_email"></td>
+                                </tr>
+
+                                <tr>
+                                  <td><label for="id_for_label_password1">Пароль:</label></td>
+                                  <td><input required class="form-control" type="password" name="password1" id="id_for_label_password1"></td>
+                                </tr>
+                                <tr>
+                                  <td><label for="id_for_label_password2">Повторите пароль:</label></td>
+                                  <td><input required class="form-control" type="password" name="password2" id="id_for_label_password2"></td>
+                                </tr>
+                            </table>
+
+                            <input class="form-control" type="button" value="Зарегистрироваться" id="registrate_button"/>
                         </form>
                     </div>
                 </li>
@@ -129,6 +149,7 @@
                     data: {},
                     success: function(result) {
                         console.log(result);
+                        if (result.success) {window.location = window.location;}
                     },
                     error: function(jqxhr, a, b) {
                         console.log('error');
@@ -148,6 +169,26 @@
                     data: $(event.target.form).serialize(),
                     success: function(result) {
                         console.log(result);
+                        if (result.success) {window.location = window.location;}
+                    },
+                    error: function(jqxhr, a, b) {
+                        console.log('error');
+                        console.log(jqxhr.responseText);
+                    },
+                    method: "post"
+                });
+            });
+            $('#registrate_button').click(function(event) {
+                $.ajax({
+                    url: "/registrate/",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                    },
+                    dataType: 'json',
+                    data: $(event.target.form).serialize(),
+                    success: function(result) {
+                        console.log(result);
+                        if (result.success) {window.location = window.location;}
                     },
                     error: function(jqxhr, a, b) {
                         console.log('error');
