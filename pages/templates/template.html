@@ -85,7 +85,7 @@
                                 </tr>
                             </table>
 
-                            <input class="form-control" type="button" value="Войти" id="login_button"/>
+                            <input class="form-control" type="button" value="Войти" id="login_button"/> или войти через <a href="{{ google_auth_url }}" target="_blank">Google</a>
                         </form>
                     {% endif %}
                 </div>
@@ -141,7 +141,7 @@
         {% if request.user.is_authenticated %}
             $('#logout_button').click(function(event) {
                 $.ajax({
-                    url: "/logout/",
+                    url: "{% url 'custom_login' %}",
                     headers: {
                         "X-CSRFToken": "{{ csrf_token }}",
                     },
@@ -161,7 +161,7 @@
         {% else %}
             $('#login_button').click(function(event) {
                 $.ajax({
-                    url: "/login/",
+                    url: "{% url 'custom_login' %}",
                     headers: {
                         "X-CSRFToken": "{{ csrf_token }}",
                     },
@@ -180,7 +180,7 @@
             });
             $('#registrate_button').click(function(event) {
                 $.ajax({
-                    url: "/registrate/",
+                    url: "{% url 'custom_registration' %}",
                     headers: {
                         "X-CSRFToken": "{{ csrf_token }}",
                     },

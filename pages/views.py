@@ -3,8 +3,6 @@ import sys
 from io import StringIO
 from subprocess import check_output
 
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm
 from django.core import management
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -12,7 +10,6 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from note.models import Note
-from pages.serializers import RegistrationSerializer
 from utils.redis import get_redis
 
 
@@ -74,45 +71,3 @@ class AboutProjectView(APIView):
     def get(self, request):
         context = {}
         return render(request, 'pages/about_project.html', context)
-
-
-class LoginView(APIView):
-    def post(self, request):
-        user = authenticate(
-            request,
-            username=request.POST['username'],
-            password=request.POST['password'],
-        )
-        data = {'success': False}
-        if user:
-            login(request, user)
-            data['success'] = True
-        else:
-            pass
-
-        return Response(status=status.HTTP_200_OK, data=data)
-
-
-class LogoutView(APIView):
-    def post(self, request):
-        data = {}
-        logout(request)
-        data['success'] = True
-        return Response(status=status.HTTP_200_OK, data=data)
-
-
-class RegistrationView(APIView):
-    def post(self, request):
-        serializer = RegistrationSerializer(data=request.POST)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        user_creation_form = UserCreationForm(data)
-        data_for_response = {}
-        if user_creation_form.is_valid():
-            user_creation_form.save()
-            data_for_response['success'] = True
-        else:
-            data_for_response['success'] = False
-            data_for_response['errors'] = user_creation_form.errors
-
-        return Response(status=status.HTTP_200_OK, data=data_for_response)
