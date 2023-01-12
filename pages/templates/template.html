@@ -134,14 +134,10 @@
         $('#btn_toggle_login_box').click(function(event) {
             $('#login_box').toggle();
         });
-        $('#btn_toggle_registration_box').click(function(event) {
-            $('#registration_box').toggle();
-        });
-        
         {% if request.user.is_authenticated %}
             $('#logout_button').click(function(event) {
                 $.ajax({
-                    url: "{% url 'custom_login' %}",
+                    url: "{% url 'custom_logout' %}",
                     headers: {
                         "X-CSRFToken": "{{ csrf_token }}",
                     },
@@ -159,6 +155,10 @@
                 });
             });
         {% else %}
+            $('#btn_toggle_registration_box').click(function(event) {
+                $('#registration_box').toggle();
+            });
+        
             $('#login_button').click(function(event) {
                 $.ajax({
                     url: "{% url 'custom_login' %}",

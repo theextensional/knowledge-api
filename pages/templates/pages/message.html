@@ -1,0 +1,17 @@
+{% extends 'template.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <style>
+        .success {
+            color: green;
+        }
+        .unsuccess {
+            color: red;
+        }
+    </style>
+    <span class="{% if success %}success{% else %}unsuccess{% endif %}">{{ message }}</span>
+{% endblock %}

@@ -2,6 +2,7 @@ from django.urls import path
 
 from custom_auth.views import (
     ExternAuthGoogleView,
+    ExternRegistrationView,
     LoginView,
     LogoutView,
     RegistrationView,
@@ -12,4 +13,5 @@ urlpatterns = [
     path('logout', LogoutView.as_view(), name='custom_logout'),
     path('registrate', RegistrationView.as_view(), name='custom_registration'),
     path('extern_google', ExternAuthGoogleView.as_view(), name='extern_auth_google'),
+    path('extern_registrate', ExternRegistrationView.as_view(), name='extern_registration'),
 ]

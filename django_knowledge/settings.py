@@ -15,6 +15,7 @@ DEBUG = env('DEBUG')
 ROOT_URLCONF = 'django_knowledge.urls'
 WSGI_APPLICATION = 'django_knowledge.wsgi.application'
 STATIC_URL = '/static/'
+SITE_URL = env('SITE_URL')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
