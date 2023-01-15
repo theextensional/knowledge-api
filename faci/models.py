@@ -21,19 +21,21 @@ class FaciCanvas(DatetimeMixin, models.Model):
     AIM_TYPE_SOLUTION = 1
     AIM_TYPE_IDEA = 2
     AIM_TYPE_SYNC = 3
+    AIM_TYPE_OTHER = 4
     AIM_TYPE_CHOICES = (
         (AIM_TYPE_SOLUTION, 'Принять решение'),
         (AIM_TYPE_IDEA, 'Придумать идею'),
         (AIM_TYPE_SYNC, 'Синхронизироваться между собой'),
+        (AIM_TYPE_OTHER, 'Прочее'),
     )
     user_creator = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
     #  Цель
     aim = models.CharField(verbose_name='Что мы пытаемся достичь?', max_length=255, null=False)
     if_not_reached = models.CharField(verbose_name='Что произойдёт, если цель не будет достигнута?', max_length=255, null=False)
-    aim_type = models.IntegerField(verbose_name='Вид встречи', null=False, choices=AIM_TYPE_CHOICES)
+    aim_type = models.IntegerField(verbose_name='Вид встречи', null=False, choices=AIM_TYPE_CHOICES, default=AIM_TYPE_SOLUTION)
     # Подготовка
     dt_meeting = models.DateTimeField(verbose_name='Дата и время', null=True)
-    duration = models.IntegerField(verbose_name='Длительность', null=False, default=30)
+    duration = models.IntegerField(verbose_name='Длительность, минуты', null=False, default=30)
     place = models.CharField(verbose_name='Место', null=False, default='', max_length=100, blank=True)
     # Ключевые мысли
     key_thoughts = models.TextField(verbose_name='Ключевые мысли', max_length=10000, null=False, default='', blank=True)

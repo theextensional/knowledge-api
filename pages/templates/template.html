@@ -63,63 +63,71 @@
             {#<li class="nav-item">#}
             {#    <a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">Обслуживание сервера</a>#}
             {#</li>#}
+            {% if request.user.is_authenticated %}
+            <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">{{ request.user.username }}</a>
+                <ul class="dropdown-menu">
+                    {% url 'custom_token' as url %}
+                    <li>
+                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Токены для API</a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item">
+                            <input class="form-control" type="button" value="Выйти" id="logout_button"/>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            {% else %}
             <li class="nav-item" style="position: relative">
                 <input type="button" value="{% if request.user.is_authenticated %}{{ request.user.username }}{% else %}Войти{% endif %}" class="nav-link" id="btn_toggle_login_box">
                 <div id="login_box" class="submenu_box">
-                    {% if request.user.is_authenticated %}
-                        Вы авторизованы <br>
-                        <form>
-                            <input class="form-control" type="button" value="Выйти" id="logout_button"/>
-                        </form>
-                    {% else %}
-                        <form>
-                            <table>
-                                <tr>
-                                  <td><label for="id_for_label_username">Пользователь</label></td>
-                                  <td><input required class="form-control" type="text" name="username" id="id_for_label_username"></td>
-                                </tr>
-    
-                                <tr>
-                                  <td><label for="id_for_label_password">Пароль</label></td>
-                                  <td><input required class="form-control" type="password" name="password" id="id_for_label_password"></td>
-                                </tr>
-                            </table>
+                    <form>
+                        <table>
+                            <tr>
+                              <td><label for="id_for_label_username">Пользователь</label></td>
+                              <td><input required class="form-control" type="text" name="username" id="id_for_label_username"></td>
+                            </tr>
 
-                            <input class="form-control" type="button" value="Войти" id="login_button"/> или войти через <a href="{{ google_auth_url }}" target="_blank">Google</a>
-                        </form>
-                    {% endif %}
+                            <tr>
+                              <td><label for="id_for_label_password">Пароль</label></td>
+                              <td><input required class="form-control" type="password" name="password" id="id_for_label_password"></td>
+                            </tr>
+                        </table>
+
+                        <input class="form-control" type="button" value="Войти" id="login_button"/> или войти через <a href="{{ google_auth_url }}" target="_blank">Google</a>
+                    </form>
                 </div>
             </li>
-            {% if not request.user.is_authenticated %}
-                <li class="nav-item" style="position: relative">
-                    <input type="button" value="Регистрация" class="nav-link" id="btn_toggle_registration_box">
-                    <div id="registration_box" class="submenu_box">
-                        <form>
-                            <table>
-                                <tr>
-                                  <td><label for="id_for_label_username">Пользователь:</label></td>
-                                  <td><input required class="form-control" type="text" name="username" id="id_for_label_username"></td>
-                                </tr>
-    
-                                <tr>
-                                  <td><label for="id_for_label_email">E-mail:</label></td>
-                                  <td><input required class="form-control" type="text" name="email" id="id_for_label_email"></td>
-                                </tr>
+            <li class="nav-item" style="position: relative">
+                <input type="button" value="Регистрация" class="nav-link" id="btn_toggle_registration_box">
+                <div id="registration_box" class="submenu_box">
+                    <form>
+                        <table>
+                            <tr>
+                              <td><label for="id_for_label_username">Пользователь:</label></td>
+                              <td><input required class="form-control" type="text" name="username" id="id_for_label_username"></td>
+                            </tr>
 
-                                <tr>
-                                  <td><label for="id_for_label_password1">Пароль:</label></td>
-                                  <td><input required class="form-control" type="password" name="password1" id="id_for_label_password1"></td>
-                                </tr>
-                                <tr>
-                                  <td><label for="id_for_label_password2">Повторите пароль:</label></td>
-                                  <td><input required class="form-control" type="password" name="password2" id="id_for_label_password2"></td>
-                                </tr>
-                            </table>
+                            <tr>
+                              <td><label for="id_for_label_email">E-mail:</label></td>
+                              <td><input required class="form-control" type="text" name="email" id="id_for_label_email"></td>
+                            </tr>
 
-                            <input class="form-control" type="button" value="Зарегистрироваться" id="registrate_button"/>
-                        </form>
-                    </div>
-                </li>
+                            <tr>
+                              <td><label for="id_for_label_password1">Пароль:</label></td>
+                              <td><input required class="form-control" type="password" name="password1" id="id_for_label_password1"></td>
+                            </tr>
+                            <tr>
+                              <td><label for="id_for_label_password2">Повторите пароль:</label></td>
+                              <td><input required class="form-control" type="password" name="password2" id="id_for_label_password2"></td>
+                            </tr>
+                        </table>
+
+                        <input class="form-control" type="button" value="Зарегистрироваться" id="registrate_button"/>
+                    </form>
+                </div>
+            </li>
             {% endif %}
         </ul>
     </div>
@@ -131,9 +139,6 @@
 
     <script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script> 
     <script>
-        $('#btn_toggle_login_box').click(function(event) {
-            $('#login_box').toggle();
-        });
         {% if request.user.is_authenticated %}
             $('#logout_button').click(function(event) {
                 $.ajax({
@@ -155,6 +160,9 @@
                 });
             });
         {% else %}
+            $('#btn_toggle_login_box').click(function(event) {
+                $('#login_box').toggle();
+            });
             $('#btn_toggle_registration_box').click(function(event) {
                 $('#registration_box').toggle();
             });

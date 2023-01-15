@@ -5,13 +5,13 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render
+from django.views import View
 from django.urls import reverse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from custom_auth.models import ExternGoogleUser
-
+from custom_auth.models import ExternGoogleUser, Token
 from custom_auth.serializers import RegistrationSerializer
 
 
@@ -103,7 +103,7 @@ class ExternAuthGoogleView(APIView):
         ext_user_set = ExternGoogleUser.objects.filter(extern_id=user_hashed_id)
         if not ext_user_set.count():
             # Регистрируем пользователя
-            user = User(username=temp_username)
+            user = User(username=temp_username, email=user_info['email'])
             user.save()
             ext_user = ExternGoogleUser(user=user, extern_id=user_hashed_id, is_username_changed=False)
             ext_user.save()
@@ -138,3 +138,13 @@ class ExternRegistrationView(APIView):
     def get(self, request):
         context = {'error': ''}
         return render(request, 'pages/change_username_after_first_extern_auth.html', context=context)
+
+
+class TokenView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        tokens = Token.objects.filter(user=request.user).values()
+        context = {'tokens': list(tokens)}
+        return render(request, 'pages/tokens.html', context=context)

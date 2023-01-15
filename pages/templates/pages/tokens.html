@@ -1,0 +1,94 @@
+{% extends 'template.html' %}
+
+{% block title %}Токены для API{% endblock %}
+{% block page_title %}Токены для API{% endblock %}
+
+{% block content %}
+    <script src="https://unpkg.com/vue@3"></script>
+    {{ tokens|json_script:'tokens_json' }}
+    
+    <p>Для изменения значения, нажмите на соответствующую ячейку. Подробнее о фасилитации можно <a href="https://telegra.ph/article-11-16-4" target="_blank">узнать по ссылке</a>.</p>
+    
+    <input type="button" value="Добавить токен" id="add_token_button" class="form-control" style="width: auto; display: inline;">
+    <div id="app">
+        <token-item
+            v-for="token in token_list"
+            :token="token"
+            :key="token.id"
+        ></token-item>
+    </div>
+    
+    <script>
+    const TokenItem = {
+        props: ["key", "token"],
+        template: `
+<form class="item" @submit.prevent @keyup.enter="view_app_name">
+    <input name="token_id" v-bind:value="token.id" type="hidden"/>
+
+    <span class="app_name" @click="edit_app_name" style="cursor:pointer;">[[ token.app_name ]]</span>
+    <input v-model.trim="token.app_name" name="app_name" @blur="view_app_name" class="d-none"/> |
+
+    <span class="token">[[ token.token ]]</span>
+
+    <input @click="delete_token" type="button" value="X" class="form-control delete_button" style="width: auto; display: inline;"/>
+</form>`,
+        methods: {
+            delete_token(event) {
+                event.target.form.remove();
+            },
+            edit_app_name(event) {
+                let field = event.target.closest("form").app_name;
+                let sign = event.target;
+                sign.classList.add('d-none');
+                field.classList.remove('d-none');
+                field.dataset.previous_value = this.token.app_name;
+                field.focus();
+            },
+            view_app_name(event) {
+                let field = event.target;
+                let sign = event.target.closest("form").querySelector('.app_name');
+                sign.classList.remove('d-none');
+                field.classList.add('d-none');
+                if (field.value == '') {
+                    this.token.app_name = field.dataset.previous_value;
+                }
+                if (this.token.app_name && this.token.app_name != field.dataset.previous_value) {
+                    //sign.textContent = field.value;
+                }
+            },
+        }
+    }
+    
+    const { createApp } = Vue
+
+    var app = createApp({
+        data() {
+            return {
+                token_list: JSON.parse(document.getElementById('tokens_json').textContent).concat(
+                    [{'id': '1', 'app_name': 'Test app', 'token': 'gfbiowuynmstunxkkhejb'},
+                    {'id': '2', 'app_name': 'Extra super application', 'token': 'gfbiowuynmstunxkkhejb'}]
+                ),
+            }
+        },
+        methods: {
+            add_token(event) {
+                this.token_list.push({'id': '', 'app_name': '', 'token': ''});
+                setTimeout(function() {
+                    let token_items = $('#app')[0].children;
+                    token_items[token_items.length-1].querySelector('.app_name').click();
+                }, 20);
+            },
+        },
+        components: {
+            TokenItem
+        },
+        compilerOptions: {
+            delimiters: ["[[", "]]"],
+        },
+    });
+    app.config.compilerOptions.delimiters = [ '[[', ']]' ];
+    var token_list = app.mount('#app');
+
+    $("#add_token_button").click(token_list.add_token);
+    </script>
+{% endblock %}

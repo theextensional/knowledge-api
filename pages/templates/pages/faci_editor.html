@@ -15,16 +15,16 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
+                            <label for="{{ faci_form.aim_type.id_for_label }}" class="form-label">{{ faci_form.aim_type.label }}</label>
+                            {{ faci_form.aim_type }}
+                        </div>
+                        <div class="mb-3">
                             <label for="{{ faci_form.aim.id_for_label }}" class="form-label">{{ faci_form.aim.label }}</label>
                             {{ faci_form.aim }}
                         </div>
                         <div class="mb-3">
                             <label for="{{ faci_form.if_not_reached.id_for_label }}" class="form-label">{{ faci_form.if_not_reached.label }}</label>
                             {{ faci_form.if_not_reached }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ faci_form.aim_type.id_for_label }}" class="form-label">{{ faci_form.aim_type.label }}</label>
-                            {{ faci_form.aim_type }}
                         </div>
                     </div>
                 </div>

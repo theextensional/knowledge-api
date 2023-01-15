@@ -5,6 +5,7 @@ from custom_auth.views import (
     ExternRegistrationView,
     LoginView,
     LogoutView,
+    TokenView,
     RegistrationView,
 )
 
@@ -14,4 +15,5 @@ urlpatterns = [
     path('registrate', RegistrationView.as_view(), name='custom_registration'),
     path('extern_google', ExternAuthGoogleView.as_view(), name='extern_auth_google'),
     path('extern_registrate', ExternRegistrationView.as_view(), name='extern_registration'),
+    path('tokens', TokenView.as_view(), name='custom_token'),
 ]
