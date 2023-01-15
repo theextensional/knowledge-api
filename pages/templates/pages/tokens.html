@@ -7,7 +7,7 @@
     <script src="https://unpkg.com/vue@3"></script>
     {{ tokens|json_script:'tokens_json' }}
     
-    <p>Для изменения значения, нажмите на соответствующую ячейку. Подробнее о фасилитации можно <a href="https://telegra.ph/article-11-16-4" target="_blank">узнать по ссылке</a>.</p>
+    <p>Для изменения значения, нажмите на соответствующую ячейку.</p>
     
     <input type="button" value="Добавить токен" id="add_token_button" class="form-control" style="width: auto; display: inline;">
     <div id="app">
@@ -19,22 +19,45 @@
     </div>
     
     <script>
+    function click_on_last(selector) {
+        let token_items = $('#app')[0].children;
+        token_items[token_items.length-1].querySelector(selector).click();
+    }
+    
+    
     const TokenItem = {
         props: ["key", "token"],
         template: `
-<form class="item" @submit.prevent @keyup.enter="view_app_name">
+<form class="item" @submit.prevent @keyup.enter.prevent>
     <input name="token_id" v-bind:value="token.id" type="hidden"/>
 
     <span class="app_name" @click="edit_app_name" style="cursor:pointer;">[[ token.app_name ]]</span>
     <input v-model.trim="token.app_name" name="app_name" @blur="view_app_name" class="d-none"/> |
 
-    <span class="token">[[ token.token ]]</span>
-
     <input @click="delete_token" type="button" value="X" class="form-control delete_button" style="width: auto; display: inline;"/>
 </form>`,
         methods: {
             delete_token(event) {
-                event.target.form.remove();
+                if (this.token.id) {
+                    $.ajax({
+                        url: "{% url 'custom_auth_delete_token' '0' %}" + this.token.id,
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: $(event.target.form).serialize(),
+                        success: function(result) {
+                            event.target.form.remove();
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                            console.log(jqxhr.responseText);
+                        },
+                        method: "post"
+                    });
+                } else {
+                    event.target.form.remove();
+                }
             },
             edit_app_name(event) {
                 let field = event.target.closest("form").app_name;
@@ -47,14 +70,61 @@
             view_app_name(event) {
                 let field = event.target;
                 let sign = event.target.closest("form").querySelector('.app_name');
-                sign.classList.remove('d-none');
-                field.classList.add('d-none');
-                if (field.value == '') {
-                    this.token.app_name = field.dataset.previous_value;
+                function _view_app_name() {
+                    sign.classList.remove('d-none');
+                    field.classList.add('d-none');
                 }
-                if (this.token.app_name && this.token.app_name != field.dataset.previous_value) {
-                    //sign.textContent = field.value;
+
+                _this = this;
+                if (this.token.id) {
+                    if (field.value && this.token.app_name != field.dataset.previous_value) {
+                        $.ajax({
+                            url: "{% url 'custom_auth_edit_token' %}",
+                            headers: {
+                                "X-CSRFToken": "{{ csrf_token }}",
+                            },
+                            dataType: 'json',
+                            data: $(event.target.form).serialize(),
+                            success: function(result) {
+                                _view_app_name();
+                            },
+                            error: function(jqxhr, a, b) {
+                                field.focus();
+                                console.log('error');
+                                console.log(jqxhr.responseText);
+                            },
+                            method: "post"
+                        });
+                    } else {
+                        _view_app_name();
+                        this.token.app_name = field.dataset.previous_value;
+                    }
+                } else {
+                    if (field.value) {
+                        $.ajax({
+                            url: "{% url 'custom_auth_add_token' %}",
+                            headers: {
+                                "X-CSRFToken": "{{ csrf_token }}",
+                            },
+                            dataType: 'json',
+                            data: $(event.target.form).serialize(),
+                            success: function(result) {
+                                _this.id = result.id;
+                                _view_app_name();
+                                alert('Токен успешно сгенерирован: '+result.token+'\nСкопируйте его и вставьте в своё приложение - после закрытия окна сделать это будет невозможно');
+                            },
+                            error: function(jqxhr, a, b) {
+                                field.focus();
+                                console.log('error');
+                                console.log(jqxhr.responseText);
+                            },
+                            method: "post"
+                        });
+                    } else {
+                        this.delete_token(event);
+                    }
                 }
+                
             },
         }
     }
@@ -64,18 +134,14 @@
     var app = createApp({
         data() {
             return {
-                token_list: JSON.parse(document.getElementById('tokens_json').textContent).concat(
-                    [{'id': '1', 'app_name': 'Test app', 'token': 'gfbiowuynmstunxkkhejb'},
-                    {'id': '2', 'app_name': 'Extra super application', 'token': 'gfbiowuynmstunxkkhejb'}]
-                ),
+                token_list: JSON.parse(document.getElementById('tokens_json').textContent),
             }
         },
         methods: {
             add_token(event) {
                 this.token_list.push({'id': '', 'app_name': '', 'token': ''});
                 setTimeout(function() {
-                    let token_items = $('#app')[0].children;
-                    token_items[token_items.length-1].querySelector('.app_name').click();
+                    click_on_last('.app_name');
                 }, 20);
             },
         },

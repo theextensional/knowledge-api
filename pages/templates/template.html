@@ -67,7 +67,7 @@
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">{{ request.user.username }}</a>
                 <ul class="dropdown-menu">
-                    {% url 'custom_token' as url %}
+                    {% url 'custom_auth_tokens' as url %}
                     <li>
                         <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Токены для API</a>
                     </li>

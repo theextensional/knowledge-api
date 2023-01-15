@@ -1,7 +1,9 @@
 import requests
+from secrets import token_urlsafe
 
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render
@@ -12,7 +14,11 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from custom_auth.models import ExternGoogleUser, Token
-from custom_auth.serializers import RegistrationSerializer
+from custom_auth.serializers import (
+    AddTokenSerializer,
+    EditTokenSerializer,
+    RegistrationSerializer,
+)
 
 
 class LoginView(APIView):
@@ -109,6 +115,10 @@ class ExternAuthGoogleView(APIView):
             ext_user.save()
         else:
             ext_user = ext_user_set.get()
+            user = ext_user.user
+            if user.email != user_info['email']:
+                user.email = user_info['email']
+                user.save()
 
         login(request, ext_user.user)
         if not ext_user.is_username_changed:
@@ -140,11 +150,49 @@ class ExternRegistrationView(APIView):
         return render(request, 'pages/change_username_after_first_extern_auth.html', context=context)
 
 
-class TokenView(View):
+class TokenView(LoginRequiredMixin, View):
     def get(self, request):
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        #if not request.user.is_authenticated:
+        #    return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        tokens = Token.objects.filter(user=request.user).values()
+        tokens = Token.objects.filter(user=request.user).values('id', 'app_name')
         context = {'tokens': list(tokens)}
         return render(request, 'pages/tokens.html', context=context)
+
+
+class AddTokenView(LoginRequiredMixin, APIView):
+    def post(self, request):
+        serializer = AddTokenSerializer(data=request.POST)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        
+        token_str_source = token_urlsafe(20)
+        token_str_hashed = token_str_source
+        token = Token(user=request.user, app_name=data['app_name'], token=token_str_hashed)
+        token.save()
+        data_for_response = {
+            'id': token.pk,
+            'token': token_str_source,
+        }
+        return Response(status=status.HTTP_200_OK, data=data_for_response)
+        
+
+class EditTokenView(LoginRequiredMixin, APIView):
+    def post(self, request):
+        serializer = EditTokenSerializer(data=request.POST)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        
+        token = Token.objects.get(user=request.user, pk=data['token_id'])
+        token.app_name = data['app_name']
+        token.save()
+        data_for_response = {}
+        return Response(status=status.HTTP_200_OK, data=data_for_response)
+
+
+class DeleteTokenView(LoginRequiredMixin, APIView):
+    def post(self, request, pk):
+        token = Token.objects.get(user=request.user, pk=pk)
+        token.delete()
+        data_for_response = {}
+        return Response(status=status.HTTP_200_OK, data=data_for_response)
