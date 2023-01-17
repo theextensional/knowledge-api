@@ -4,7 +4,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from faci.forms import FaciCanvasForm
+from faci.forms import (
+    FaciCanvasAimForm,
+    FaciCanvasMembersForm,
+    FaciCanvasAgendaForm,
+    FaciCanvasPreparingForm,
+    FaciCanvasKeyThoughtsForm,
+    FaciCanvasAgreementsForm,
+)
 from faci.models import FaciCanvas
 from faci.serializers import AddFaciViewSerializer, GetListFaciSerializer
 
@@ -12,15 +19,38 @@ from faci.serializers import AddFaciViewSerializer, GetListFaciSerializer
 class FaciEditorView(APIView):
     def get(self, request, canvas_id=None):
         if canvas_id:
+            # Редактирование
             faci = get_object_or_404(FaciCanvas, pk=canvas_id)
-            faci_form = FaciCanvasForm(instance=faci)
+            step = faci.step
+            form_aim = FaciCanvasAimForm(instance=faci)
+            form_members = FaciCanvasMembersForm(instance=faci)
+            form_agenda = FaciCanvasAgendaForm(instance=faci)
+            form_preparing = FaciCanvasPreparingForm(instance=faci)
+            form_key_thoughts = FaciCanvasKeyThoughtsForm(instance=faci)
+            form_agreements = FaciCanvasAgreementsForm(instance=faci)
+            
         else:
+            # Создание
             if not request.user.is_authenticated:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            
-            faci_form = FaciCanvasForm()
-        
-        context = {'faci_form': faci_form}
+
+            step = 1
+            form_aim = FaciCanvasAimForm()
+            form_members = FaciCanvasMembersForm()
+            form_agenda = FaciCanvasAgendaForm()
+            form_preparing = FaciCanvasPreparingForm()
+            form_key_thoughts = FaciCanvasKeyThoughtsForm()
+            form_agreements = FaciCanvasAgreementsForm()
+
+        context = {
+            'step': step,
+            'form_aim': form_aim,
+            'form_members': form_members,
+            'form_agenda': form_agenda,
+            'form_preparing': form_preparing,
+            'form_key_thoughts': form_key_thoughts,
+            'form_agreements': form_agreements,
+        }
         return render(request, 'pages/faci_editor.html', context)
 
     def post(self, request, canvas_id=None):
@@ -29,14 +59,17 @@ class FaciEditorView(APIView):
 
         faci_form_data = request.data
         if canvas_id:
+            # Редактирование
             faci = get_object_or_404(FaciCanvas, pk=canvas_id)
             if faci.user_creator != request.user:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-            faci_form = FaciCanvasForm(faci_form_data, instance=faci)
+            faci_form = FaciCanvasAimForm(faci_form_data, instance=faci)
         else:
-            faci_form = FaciCanvasForm(faci_form_data)
+            # Создание
+            faci_form = FaciCanvasAimForm(faci_form_data)
             faci_form.instance.user_creator = request.user
+            faci_form.instance.step = 2
 
         data_for_return = {}
         if faci_form.is_valid():
@@ -46,6 +79,11 @@ class FaciEditorView(APIView):
             data_for_return['errors'] = faci_form.errors
 
         return Response(status=status.HTTP_200_OK, data=data_for_return)
+
+
+class FaciEditMembersView(APIView):
+    def post(self, request):
+        pass
 
 
 class FaciListView(View):

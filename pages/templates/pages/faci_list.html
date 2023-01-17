@@ -2,9 +2,6 @@
 
 {% block title %}
     Холсты фасилитации
-    {% if request.user.is_authenticated %}
-        (<a href="{% url 'faci_new' %}">создать</a>)
-    {% endif %}
 {% endblock %}
 {% block page_title %}Холсты фасилитации{% endblock %}
 
@@ -32,6 +29,12 @@
             font-size: 12px;
         }
     </style>
+    
+    {% if request.user.is_authenticated %}
+        <p style="text-align: right;">
+            <a href="{% url 'faci_new' %}" style="text-decoration: none"><input type="button" value="Добавить холст" id="add_token_button" class="form-control" style="width: auto; display: inline;"></a>
+        </p>
+    {% endif %}
     
     <p>Подробнее о фасилитации можно <a href="https://telegra.ph/article-11-16-4" target="_blank">узнать по ссылке</a>.</p>
 

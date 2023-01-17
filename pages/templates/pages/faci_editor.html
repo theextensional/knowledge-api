@@ -1,133 +1,157 @@
 {% extends 'template.html' %}
 
 {% block title %}
-    {% if faci_form.instance.id %} <a style="text-decoration: none;" href="{% url 'faci_list' %}">🡄</a> Редактирование холста {% else %} Новый холст {% endif %}
+    {% if form_aim.instance.id %} <a style="text-decoration: none;" href="{% url 'faci_list' %}">🡄</a> Редактирование холста {% else %} Новый холст {% endif %}
 {% endblock %}
 {% block page_title %} Холст фасилитации {% endblock %}
 
 {% block content %}
-    <form action="" id='faci_form'>
-        <div class="row">
-            <div class="col-sm-6">
-                <div class="card">
-                    <div class="card-header">
-                        Цель
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="{{ faci_form.aim_type.id_for_label }}" class="form-label">{{ faci_form.aim_type.label }}</label>
-                            {{ faci_form.aim_type }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ faci_form.aim.id_for_label }}" class="form-label">{{ faci_form.aim.label }}</label>
-                            {{ faci_form.aim }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ faci_form.if_not_reached.id_for_label }}" class="form-label">{{ faci_form.if_not_reached.label }}</label>
-                            {{ faci_form.if_not_reached }}
-                        </div>
-                    </div>
-                </div>
-                
-                <br>
+    <style>
+        .card-body form {
+            position: relative;
+        }
+        .form_sheet {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: ghostwhite;
+            opacity: 90%;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 
-                <div class="card">
-                    <div class="card-header">
-                        Участники
-                    </div>
-                    <div class="card-body">
-                    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-header">
+                    1. Цель
+                </div>
+                <div class="card-body">
+                    <form id="aim_form">
+                        <div class="mb-3">
+                            <label for="{{ form_aim.aim_type.id_for_label }}" class="form-label">{{ form_aim.aim_type.label }}</label>
+                            {{ form_aim.aim_type }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form_aim.aim.id_for_label }}" class="form-label">{{ form_aim.aim.label }}</label>
+                            {{ form_aim.aim }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form_aim.if_not_reached.id_for_label }}" class="form-label">{{ form_aim.if_not_reached.label }}</label>
+                            {{ form_aim.if_not_reached }}
+                        </div>
+                   </form>
                 </div>
             </div>
             
-            <div class="col-sm-3">
-                <div class="card">
-                    <div class="card-header">
-                        Повестка
-                    </div>
-                    <div class="card-body">
-                    </div>
+            <br>
+
+            <div class="card">
+                <div class="card-header">
+                    2. Участники
+                </div>
+                <div class="card-body">
+                    <form id="members_form">
+                        <input type="button" value="Добавить">
+                        <div class="{% if step > 1 %}d-none {% endif %}form_sheet">Для открытия выполните 1-й шаг</div>
+                    </form>
                 </div>
             </div>
-            
-            <div class="col-sm-3">
-                <div class="card">
-                    <div class="card-header">
-                        Подготовка
-                    </div>
-                    <div class="card-body">
+        </div>
+        
+        <div class="col-sm-3">
+            <div class="card">
+                <div class="card-header">
+                    3. Повестка
+                </div>
+                <div class="card-body">
+                    <form id="agenda_form">
+                        <div class="{% if step > 2 %}d-none {% endif %}form_sheet">Для открытия заполните, пожалуйста, список участников (2-й шаг)</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-sm-3">
+            <div class="card">
+                <div class="card-header">
+                    4. Подготовка
+                </div>
+                <div class="card-body">
+                    <form id="preparing_form">
                         <div class="mb-3">
-                            <label for="{{ faci_form.dt_meeting.id_for_label }}" class="form-label">{{ faci_form.dt_meeting.label }}</label>
-                            {{ faci_form.dt_meeting }}
+                            <label for="{{ form_aim.dt_meeting.id_for_label }}" class="form-label">{{ form_aim.dt_meeting.label }}</label>
+                            {{ form_aim.dt_meeting }}
                         </div>
                         <div class="mb-3">
-                            <label for="{{ faci_form.duration.id_for_label }}" class="form-label">{{ faci_form.duration.label }}</label>
-                            {{ faci_form.duration }}
+                            <label for="{{ form_aim.duration.id_for_label }}" class="form-label">{{ form_aim.duration.label }}</label>
+                            {{ form_aim.duration }}
                         </div>
                         <div class="mb-3">
-                            <label for="{{ faci_form.place.id_for_label }}" class="form-label">{{ faci_form.place.label }}</label>
-                            {{ faci_form.place }}
+                            <label for="{{ form_aim.place.id_for_label }}" class="form-label">{{ form_aim.place.label }}</label>
+                            {{ form_aim.place }}
                         </div>
+                        <div class="{% if step > 3 %}d-none {% endif %}form_sheet">Откроется после выполнения 3-го шага</div>
+                    </form>
 
-                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="card">
+                <div class="card-header">
+                    5. Ключевые мысли
+                </div>
+                <div class="card-body">
+                    <form id="key_thoughts_form">
+                        <div class="mb-3">
+                            <label for="{{ form_aim.key_thoughts.id_for_label }}" class="form-label">{{ form_aim.key_thoughts.label }}</label>
+                            {{ form_aim.key_thoughts }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form_aim.parked_thoughts.id_for_label }}" class="form-label">{{ form_aim.parked_thoughts.label }}</label>
+                            {{ form_aim.parked_thoughts }}
+                        </div>
+                        <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <br>
-
-        <div class="row">
-            <div class="col-sm-8">
-                <div class="card">
-                    <div class="card-header">
-                        Ключевые мысли
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="{{ faci_form.key_thoughts.id_for_label }}" class="form-label">{{ faci_form.key_thoughts.label }}</label>
-                            {{ faci_form.key_thoughts }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ faci_form.parked_thoughts.id_for_label }}" class="form-label">{{ faci_form.parked_thoughts.label }}</label>
-                            {{ faci_form.parked_thoughts }}
-                        </div>
-                    </div>
+        <div class="col-sm-4">
+            <div class="card">
+                <div class="card-header">
+                    6. Договорённости
                 </div>
-            </div>
-
-            <div class="col-sm-4">
-                <div class="card">
-                    <div class="card-header">
-                        Договорённости
-                    </div>
-                    <div class="card-body">
-                    </div>
+                <div class="card-body">
+                    <form id="agreements_form">
+                        <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
+                    </form>
                 </div>
             </div>
         </div>
-    </form>
+    </div>
 
     <script>
-        function save_form(event) {
-            //data = {
-            //    aim: event.target.form.aim.value,
-            //    aim_type: event.target.form.aim_type.value,
-            //    if_not_reached: event.target.form.if_not_reached.value,
-            //};
-            //data[event.target.name] = event.target.value;
+        function save_form_aim(event) {
             $.ajax({
                 url: "",
                 headers: {
                     "X-CSRFToken": "{{ csrf_token }}",
                 },
                 dataType: 'json',
-                //contentType: "application/json",
-                data: $(event.target.form).serialize(),//JSON.stringify(data),
+                data: $(event.target.form).serialize(),
                 success: function(result) {
                     if (result['id']) {
                         try {
                             history.pushState(null, null, location.href.replace('/new', '/'+result['id']));
-                            return;
+                            $('#members_form .form_sheet')[0].classList.add('d-none');
                         } catch(e) {}
                     }
                 },
@@ -139,6 +163,6 @@
             });
         }
         
-        $('#faci_form').change(save_form);
+        $('#aim_form').change(save_form_aim);
     </script>
 {% endblock %}

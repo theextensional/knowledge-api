@@ -4,13 +4,52 @@
 {% block page_title %}Токены для API{% endblock %}
 
 {% block content %}
+   <style>
+       .token_placeholder {
+           text-align: center;
+           font-size: 16px;
+           font-weight 400;
+       }
+       .token_placeholder span {
+           padding: 5px 10px;
+           background: #d8d8d8;
+       }
+       
+       .app_name {
+           width: 80%;
+           cursor: pointer;
+           display: inline-block;
+           border-bottom: 1px solid #d8d8d8;
+           padding: 3px 0px;
+       }
+       input[name=app_name] {
+           width: 80%;
+       }
+       .delete_button {
+           padding: 2px 10px;
+           margin: 5px 10px;
+       }
+
+   </style>
+
+    <div id="window_token_is_ready" class="windowBody">
+        <p>Скопируйте его и вставьте в своё приложение - после закрытия окна сделать это будет невозможно:</p>
+        <p class="token_placeholder"> <span></span> </p>
+    </div>
+
     <script src="https://unpkg.com/vue@3"></script>
     {{ tokens|json_script:'tokens_json' }}
-    
+
+    <p style="text-align: right;">
+        <input type="button" value="Добавить токен" id="add_token_button" class="form-control" style="width: auto; display: inline;">
+    </p>
+
     <p>Для изменения значения, нажмите на соответствующую ячейку.</p>
     
-    <input type="button" value="Добавить токен" id="add_token_button" class="form-control" style="width: auto; display: inline;">
     <div id="app">
+        <form class="item">
+            <span class="app_name" style="font-weight: 600; cursor:text;">Наименование приложения</span>
+        </form>
         <token-item
             v-for="token in token_list"
             :token="token"
@@ -31,10 +70,10 @@
 <form class="item" @submit.prevent @keyup.enter.prevent>
     <input name="token_id" v-bind:value="token.id" type="hidden"/>
 
-    <span class="app_name" @click="edit_app_name" style="cursor:pointer;">[[ token.app_name ]]</span>
-    <input v-model.trim="token.app_name" name="app_name" @blur="view_app_name" class="d-none"/> |
+    <span class="app_name" @click="edit_app_name">[[ token.app_name ]]</span>
+    <input v-model.trim="token.app_name" name="app_name" @blur="view_app_name" class="d-none"/>
 
-    <input @click="delete_token" type="button" value="X" class="form-control delete_button" style="width: auto; display: inline;"/>
+    <input @click="delete_token" type="button" value="x" class="form-control delete_button" style="width: auto; display: inline;"/>
 </form>`,
         methods: {
             delete_token(event) {
@@ -111,7 +150,8 @@
                             success: function(result) {
                                 _this.id = result.id;
                                 _view_app_name();
-                                alert('Токен успешно сгенерирован: '+result.token+'\nСкопируйте его и вставьте в своё приложение - после закрытия окна сделать это будет невозможно');
+                                let w = W.open('window_token_is_ready', {text_title: "Токен успешно сгенерирован :)"});
+                                W.get_wbody(w).querySelector('.token_placeholder span').textContent = result.token;
                             },
                             error: function(jqxhr, a, b) {
                                 field.focus();

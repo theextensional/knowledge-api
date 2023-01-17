@@ -40,6 +40,7 @@ class FaciCanvas(DatetimeMixin, models.Model):
     # Ключевые мысли
     key_thoughts = models.TextField(verbose_name='Ключевые мысли', max_length=10000, null=False, default='', blank=True)
     parked_thoughts = models.TextField(verbose_name='Парковка', max_length=10000, null=False, default='', blank=True)
+    step = models.IntegerField(verbose_name='Шаг', null=False, default=1)
 
     class Meta:
         db_table = 'app_faci_canvas'

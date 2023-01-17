@@ -9,10 +9,16 @@
     <title>Веб-сервер API базы знаний | {% block page_title %}No content{% endblock %}</title>
     <script src="{% static 'pages/extern/jquery-3.6.0.min.js' %}"></script>
     <link href="{% static 'pages/extern/bootstrap.min.css' %}" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous"> 
+    <script src="{% static 'pages/functions.js' %}"></script>
+    <script src="{% static 'pages/windows.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'pages/windows.css' %}">
 </head>
 
 <body>
     <style>
+        h1 {
+            text-align: center;
+        }
         .submenu_box {
             position: absolute;
             background: white;
