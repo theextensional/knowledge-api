@@ -41,6 +41,8 @@
                             <label for="{{ form_aim.if_not_reached.id_for_label }}" class="form-label">{{ form_aim.if_not_reached.label }}</label>
                             {{ form_aim.if_not_reached }}
                         </div>
+
+                        <input type="button" value="Сохранить{% if step == 1 %} и перейти к заполнению участников{% endif %}">
                    </form>
                 </div>
             </div>
@@ -54,6 +56,13 @@
                 <div class="card-body">
                     <form id="members_form">
                         <input type="button" value="Добавить">
+                        <table>
+                             <tr>
+                                 <th>Участник</th>
+                                 <th>В каком вопросе компетентен</th>
+                                 <th>Кто пригласил</th>
+                             </tr>
+                        </table>
                         <div class="{% if step > 1 %}d-none {% endif %}form_sheet">Для открытия выполните 1-й шаг</div>
                     </form>
                 </div>

@@ -1,3 +1,6 @@
+from hashlib import blake2b
+
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -18,3 +21,11 @@ class Token(models.Model):
         db_table = 'app_custom_auth_token'
         verbose_name = 'Токен'
         verbose_name_plural = 'Токены'
+
+    @staticmethod
+    def get_hash(token: str):
+        return blake2b(
+            token.encode('utf-8'),
+            digest_size=64,
+            salt=settings.API_TOKEN_SALT.encode('utf-8'),
+        ).hexdigest()

@@ -165,9 +165,9 @@ class AddTokenView(LoginRequiredMixin, APIView):
         serializer = AddTokenSerializer(data=request.POST)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        
-        token_str_source = token_urlsafe(20)
-        token_str_hashed = token_str_source
+
+        token_str_source = token_urlsafe(64)
+        token_str_hashed = Token.get_hash(token_str_source)
         token = Token(user=request.user, app_name=data['app_name'], token=token_str_hashed)
         token.save()
         data_for_response = {
