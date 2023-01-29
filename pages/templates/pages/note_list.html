@@ -1,0 +1,16 @@
+{% extends 'template.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+    {% if request.user.is_authenticated %}
+        {% for note in notes %}
+            <h3>{{ note.title }}</h3>
+            <p>{{ note.content|slice:":1000" }}</p>
+        {% endfor %}
+    {% else %}
+        Приложение временно доступно авторизованным пользователям
+    {% endif %}
+{% endblock %}

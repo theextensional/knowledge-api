@@ -12,3 +12,8 @@ class AddFaciViewSerializer(serializers.Serializer):
 class GetListFaciSerializer(serializers.Serializer):
     count_on_page = serializers.IntegerField(min_value=1, max_value=100)
     page_number = serializers.IntegerField(min_value=1)
+
+
+class FaciEditMembersSerializer(serializers.Serializer):
+    invited = serializers.CharField(max_length=100)
+    for_what = serializers.CharField(max_length=100)

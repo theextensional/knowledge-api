@@ -6,6 +6,7 @@
 {% block page_title %} Холст фасилитации {% endblock %}
 
 {% block content %}
+    {{ members|json_script:'members_json' }}
     <style>
         .card-body form {
             position: relative;
@@ -19,6 +20,22 @@
             width: 100%;
             height: 100%;
         }
+        
+        /* ListDown */
+        .form_listdown {
+            position: relative;
+        }
+        .button_ss {cursor: pointer;}
+        .suggestions {
+            position:absolute;
+            width: calc(110% + 15px);
+            background: #faf143; text-align: left;
+            font-size: 10pt;
+            color: #0e283c;
+            z-index: 100;
+        }
+        .suggestions div {padding: 4px 5px 4px 5px; border-bottom: 1px solid #dfa4a4; cursor: pointer;}
+        .suggestions div:hover {background:#ffe4e4;}
     </style>
 
     <div class="row">
@@ -55,14 +72,10 @@
                 </div>
                 <div class="card-body">
                     <form id="members_form">
-                        <input type="button" value="Добавить">
-                        <table>
-                             <tr>
-                                 <th>Участник</th>
-                                 <th>В каком вопросе компетентен</th>
-                                 <th>Кто пригласил</th>
-                             </tr>
-                        </table>
+                        <input type="button" value="Добавить" id="add_member_button">              
+                        <div id="app">
+
+                        </div>
                         <div class="{% if step > 1 %}d-none {% endif %}form_sheet">Для открытия выполните 1-й шаг</div>
                     </form>
                 </div>
@@ -146,6 +159,198 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function custom_search_item(component) {
+            $.ajax({
+                url: "{% url 'search_user' %}",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: {search_string: component.query},
+                success: function(result) {
+                    let username;
+                    for (username of result) {
+                        component.item_list.push({'id': username, 'value': username});
+                    }
+                    if (component.item_list.length == 0) {
+                        component.item_list.push({'id': null, 'value': 'пользователь не найден'});
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+        
+    
+        const ListdownFieldItem = {
+            props: ["key", "id", "value"],
+            template: `<div @click="select_item">[[ value ]]</div>`,
+            methods: {
+                select_item(event) {
+                    alert(this.value);
+                },
+            },
+        }
+    
+        const ListdownField = {
+            props: ["key", "id", "value", "name"],
+            template: `
+<div class="component_listdown">
+    <span class="button_ss" @click="edit_field" :class="{'d-none': is_edit}">[[ mvalue ]]</span>
+    <div class="form_listdown" :class="{'d-none': !is_edit}">
+        <input type='text' v-model.trim="query" @keyup="search_item" @blur="blur_field" class="field_listdown">
+        <div class="suggestions">
+            <listdown-field-item
+                v-for="item in item_list"
+                :value="item.value"
+                :key="item.id"
+                :id="item.id"
+            ></listdown-field-item>
+        </div>
+        <input type="hidden" v-bind:name="name" v-model.trim="mid">
+    </div>
+</div>
+`,
+            data() {
+                return {
+                    mvalue: this.value,
+                    query: '',
+                    mid: this.id,
+                    previous_value: this.value,
+                    is_edit: false,
+                    item_list: [{'id': 1, 'value': 'user444'}, {'id': 2, 'value': 'usert5678'}],
+                }
+            },
+            methods: {
+                edit_field(event) {
+                    this.is_edit = true;
+                    setTimeout(function() {
+                        event.target.parentNode.querySelector('.field_listdown').focus();
+                    }, 20);
+                },
+                blur_field(event) {
+                    this.is_edit = false;
+                },
+                search_item(event) {
+                    this.item_list = [];
+                    custom_search_item(this);
+                },
+            },
+            components: {
+                ListdownFieldItem
+            },
+        }
+    
+        const ToggleField = {
+            props: ["key", "id", "value", "name"],
+            template: `
+<div>
+    <span class="el_sign" @click="edit_field" style="cursor: pointer;" :class="{'d-none': is_edit}">[[ mvalue ]]</span>
+    <input v-model.trim="mvalue" v-bind:name="name" @blur="view_field" class="el_field" :class="{'d-none': !is_edit}"/>
+</div>`,
+            data() {
+                return {mvalue: this.value, mid: this.id, previous_value: this.value, is_edit: false};
+            },
+            methods: {
+                edit_field(event) {
+                    this.is_edit = true;
+                    let field = event.target.closest('div').querySelector('.el_field');
+                    this.previous_value = this.mvalue;
+                    setTimeout(function() {field.focus();}, 20);
+                },
+                view_field(event) {
+                    if (this.mid) {
+                        if (this.mvalue && this.mvalue != this.previous_value) {
+                            this.is_edit = false;
+                        } else {
+                            this.mvalue = this.previous_value;
+                            this.is_edit = false;
+                        }
+                    } else {
+                        if (this.mvalue) {
+                            this.is_edit = false;
+                        } else {
+                            this.is_edit = false;
+                        }
+                    }
+                },
+            },
+        }
+
+        const MemberItem = {
+            props: ["key", "member"],
+            template: `
+<tr>
+    <td>
+        <listdown-field
+              :value="member.invited"
+              name="invited"
+              :key="member.id"
+              :id="member.id"
+        ></listdown-field>
+    </td>
+    <td>
+        <toggle-field
+          :value="member.for_what"
+          name="for_what"
+          :key="member.id"
+          :id="member.id"
+        ></toggle-field>
+    </td>
+    <td>[[ member.inviting ]]</td>
+</tr>`,
+            components: {
+                ListdownField, ToggleField
+            },
+        }
+
+        const { createApp } = Vue
+
+        var app = createApp({
+            template: `
+<table>
+    <tr>
+        <th>Участник</th>
+        <th>В каком вопросе компетентен</th>
+        <th>Кто пригласил</th>
+    </tr>
+    <member-item
+        v-for="member in member_list"
+        :member="member"
+        :key="member.id"
+    ></member-item>
+</table>`,
+            data() {
+                return {
+                     member_list: [{'id': '1', 'invited': 'user1', 'inviting': 'test uswr', 'for_what': 'специалист по квантовым процессам'}],
+                    //member_list: JSON.parse(document.getElementById('members_json').textContent),
+                }
+            },
+            methods: {
+                add_member(event) {
+                    this.member_list.push({'id': '', 'invited': 'user', 'inviting': '{{ request.user.username }}', 'for_what': 'test'});
+                    setTimeout(function() {
+                        //click_on_last('.app_name');
+                    }, 20);
+                },
+            },
+            components: {
+                MemberItem
+            },
+            compilerOptions: {
+                delimiters: ["[[", "]]"],
+            },
+        });
+        app.config.compilerOptions.delimiters = [ '[[', ']]' ];
+        var member_list = app.mount('#app');
+    
+        $("#add_member_button").click(member_list.add_member);
+    </script>
 
     <script>
         function save_form_aim(event) {

@@ -11,6 +11,11 @@ class DatetimeMixin(models.Model):
 
 
 class Member(models.Model):
+    invited = models.ForeignKey(User, null=False, on_delete=models.CASCADE, related_name='faci_members')
+    inviting = models.ForeignKey(User, null=False, on_delete=models.CASCADE, related_name='faci_member_inviters')
+    for_what = models.CharField(verbose_name='В каком вопросе компетентен', null=False, blank=False, max_length=200)
+    faci_canvas = models.ForeignKey('faci.FaciCanvas', null=False, on_delete=models.CASCADE)
+
     class Meta:
         db_table = 'app_faci_member'
         verbose_name = 'Участник встречи'
@@ -41,6 +46,7 @@ class FaciCanvas(DatetimeMixin, models.Model):
     key_thoughts = models.TextField(verbose_name='Ключевые мысли', max_length=10000, null=False, default='', blank=True)
     parked_thoughts = models.TextField(verbose_name='Парковка', max_length=10000, null=False, default='', blank=True)
     step = models.IntegerField(verbose_name='Шаг', null=False, default=1)
+    is_closed = models.IntegerField(verbose_name='Холст закрыт', null=False, default=0)
 
     class Meta:
         db_table = 'app_faci_canvas'

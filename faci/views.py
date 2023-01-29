@@ -1,3 +1,5 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 from rest_framework.response import Response
@@ -13,7 +15,11 @@ from faci.forms import (
     FaciCanvasAgreementsForm,
 )
 from faci.models import FaciCanvas
-from faci.serializers import AddFaciViewSerializer, GetListFaciSerializer
+from faci.serializers import (
+    AddFaciViewSerializer,
+    GetListFaciSerializer,
+    FaciEditMembersSerializer,
+)
 
 
 class FaciEditorView(APIView):
@@ -28,7 +34,7 @@ class FaciEditorView(APIView):
             form_preparing = FaciCanvasPreparingForm(instance=faci)
             form_key_thoughts = FaciCanvasKeyThoughtsForm(instance=faci)
             form_agreements = FaciCanvasAgreementsForm(instance=faci)
-            
+            members = list(faci.member_set.values('invited'))
         else:
             # Создание
             if not request.user.is_authenticated:
@@ -41,6 +47,7 @@ class FaciEditorView(APIView):
             form_preparing = FaciCanvasPreparingForm()
             form_key_thoughts = FaciCanvasKeyThoughtsForm()
             form_agreements = FaciCanvasAgreementsForm()
+            members = []
 
         context = {
             'step': step,
@@ -50,6 +57,7 @@ class FaciEditorView(APIView):
             'form_preparing': form_preparing,
             'form_key_thoughts': form_key_thoughts,
             'form_agreements': form_agreements,
+            'members': members,
         }
         return render(request, 'pages/faci_editor.html', context)
 
@@ -82,9 +90,16 @@ class FaciEditorView(APIView):
 
 
 class FaciEditMembersView(APIView):
-    def post(self, request):
-        pass
+    def post(self, request, canvas_id, member_id=None):
+        serializer = FaciEditMembersSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
+        if member_id:
+            invited = User.get(username=data.invited)
+            member = Member(invited=invited, for_what=data.for_what)
+        else:
+            pass
 
 class FaciListView(View):
     def get(self, request):
@@ -141,3 +156,11 @@ class GetListFaciView(APIView):
             'total': FaciCanvas.objects.count(),
         }
         return Response(status=status.HTTP_200_OK, data=data_for_return)
+
+
+class SearchUserView(LoginRequiredMixin, APIView):
+    def post(self, request):
+        search_string = request.POST['search_string']
+        usernames = User.objects.filter(username__contains=search_string).values_list('username', flat=True)[:10]
+        #search_result = [{'id': username, 'value': username} for username in usernames]
+        return Response(status=status.HTTP_200_OK, data=usernames)

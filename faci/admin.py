@@ -7,7 +7,7 @@ admin.site.register(Member)
 
 
 class FaciCanvasAdmin(admin.ModelAdmin):
-    list_display = ('id', 'aim', 'aim_type')
+    list_display = ('id', 'aim', 'aim_type', 'user_creator')
 
 
 admin.site.register(FaciCanvas, FaciCanvasAdmin)

@@ -37,7 +37,6 @@
         <p class="token_placeholder"> <span></span> </p>
     </div>
 
-    <script src="https://unpkg.com/vue@3"></script>
     {{ tokens|json_script:'tokens_json' }}
 
     <p style="text-align: right;">
@@ -148,7 +147,7 @@
                             dataType: 'json',
                             data: $(event.target.form).serialize(),
                             success: function(result) {
-                                _this.id = result.id;
+                                _this.token.id = result.id;
                                 _view_app_name();
                                 let w = W.open('window_token_is_ready', {text_title: "Токен успешно сгенерирован :)"});
                                 W.get_wbody(w).querySelector('.token_placeholder span').textContent = result.token;
