@@ -159,50 +159,23 @@
     </div>
 
     <script>
-        function custom_search_item(component) {
-            $.ajax({
-                url: "{% url 'search_user' %}",
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
-                },
-                dataType: 'json',
-                data: {search_string: component.query},
-                success: function(result) {
-                    let username;
-                    for (username of result) {
-                        component.item_list.push({'id': username, 'value': username});
-                    }
-                    if (component.item_list.length == 0) {
-                        component.item_list.push({'id': null, 'value': 'пользователь не найден'});
-                    }
-                },
-                error: function(jqxhr, a, b) {
-                    console.log('error');
-                    console.log(jqxhr.responseText);
-                },
-                method: "post"
-            });
-        }
-
-        function custom_select_item(id, value) {
-            return true;
-        }
-    
         const ListdownFieldItem = {
             props: ["key", "id", "value"],
-            template: `<div v-on:click="$emit('select-item', id, value)">[[ value ]]</div>`,
+            emits: ['change'],
+            template: `<div v-on:click="$emit('change', id, value)">[[ value ]]</div>`,
         }
     
         const ListdownField = {
-            props: ["key", "id", "value", "name", "edit"],
+            props: ["id", "value", "name", "edit"],
+            emits: ['search-item', 'change', 'blur', 'focus', 'update:value', 'update:id'],
             template: `
 <div class="component_listdown">
-    <span class="button_ss" @click="edit_field" :class="{'d-none': is_edit}">[[ mvalue ]]</span>
+    <span class="button_ss" @click="focus" :class="{'d-none': is_edit}">[[ mvalue ]]</span>
     <div class="form_listdown" :class="{'d-none': !is_edit}">
-        <input type='text' v-model.trim="query" @keyup="search_item" @blur="blur_field" class="field_listdown">
+        <input type='text' v-model.trim="query" @keyup="search_item" @blur="blur" class="field_listdown">
         <div class="suggestions">
             <listdown-field-item
-                v-on:select-item="select_item"
+                @change="select_item"
                 v-for="item in item_list"
                 :value="item.value"
                 :key="item.id"
@@ -223,29 +196,35 @@
                 }
             },
             methods: {
-                edit_field(event) {
+                focus(event) {
                     this.is_edit = true;
                     let self = this;
                     setTimeout(function() {
                         if (!self.query) self.query = self.mvalue;
-                        event.target.parentNode.querySelector('.field_listdown').focus();
+                        self.$el.querySelector('.field_listdown').focus();
+                        self.$emit('focus', self);
                     }, 20);
                 },
-                blur_field(event) {
+                blur(event) {
                     let self = this;
                     setTimeout( // чтобы сначала отработало событие click на выбранном элементе
-                        function() {self.is_edit = false;},
+                        function() {
+                            self.is_edit = false;
+                            self.$emit('blur', self);
+                        },
                         100,
                     );
                 },
                 search_item(event) {
                     this.item_list = [];
-                    custom_search_item(this);
+                    this.$emit('search-item', this);
                 },
                 select_item(item_id, item_value) {
                     this.mid = item_id;
                     this.mvalue = item_value;
-                    if (custom_select_item(item_id, item_value)) {
+                    this.$emit('update:id', item_id);
+                    this.$emit('update:value', item_value);
+                    if (this.$emit('change', item_id, item_value)) {
                         this.is_edit = false;
                         this.query = '';
                     }
@@ -257,38 +236,40 @@
         }
     
         const ToggleField = {
-            props: ["key", "id", "value", "name"],
+            props: ["id", "value", "name"],
+            emits: ['focus', 'blur'],
             template: `
 <div>
-    <span class="el_sign" @click="edit_field" style="cursor: pointer;" :class="{'d-none': is_edit}">[[ mvalue ]]</span>
-    <input v-model.trim="mvalue" v-bind:name="name" @blur="view_field" class="el_field" :class="{'d-none': !is_edit}"/>
+    <span class="el_sign" @click="focus" style="cursor: pointer;" :class="{'d-none': is_edit}">[[ mvalue ]]</span>
+    <input v-model.trim="mvalue" :name="name" @blur="blur" class="el_field" :class="{'d-none': !is_edit}"/>
 </div>`,
             data() {
                 return {mvalue: this.value, mid: this.id, previous_value: this.value, is_edit: false};
             },
             methods: {
-                edit_field(event) {
+                focus(event) {
                     this.is_edit = true;
-                    let field = event.target.closest('div').querySelector('.el_field');
+                    let field = this.$el.querySelector('.el_field');
                     this.previous_value = this.mvalue;
-                    setTimeout(function() {field.focus();}, 20);
+                    self = this;
+                    setTimeout(function() {
+                        field.focus();
+                        self.$emit('focus', self);
+                    }, 20);
                 },
-                view_field(event) {
+                blur(event) {
+                    this.is_edit = false;00
                     if (this.mid) {
                         if (this.mvalue) {
                             if (this.mvalue != this.previous_value) {
-                                this.is_edit = false;
+                                this.$emit('blur', this);
                             }
                         } else {
                             this.mvalue = this.previous_value;
-                            this.is_edit = false;
                         }
                     } else {
-                        if (this.mvalue) {
-                            this.is_edit = false;
-                        } else {
+                        if (!this.mvalue) {
                             this.mvalue = this.previous_value;
-                            this.is_edit = false;
                         }
                     }
                 },
@@ -296,30 +277,90 @@
         }
 
         const MemberItem = {
-            props: ["key", "member"],
+            props: ["member"],
             template: `
 <tr>
     <td>
         <listdown-field
-              :value="member.invited"
+              @search-item="search_user"
+              @change="select_user"
+              @blur="blur_selecting_user"
+              v-model:value="member.invited"
               :edit="member.edit"
               name="invited"
-              :key="member.id"
-              :id="member.id"
         ></listdown-field>
     </td>
     <td>
         <toggle-field
+           @blur="blur_input_for_what"
           :value="member.for_what"
-          name="for_what"
-          :key="member.id"
           :id="member.id"
+          name="for_what"
         ></toggle-field>
     </td>
     <td>[[ member.inviting ]]</td>
 </tr>`,
             components: {
                 ListdownField, ToggleField
+            },
+            methods: {
+                save_member() {
+                    $.ajax({
+                        url: 'member/' + this.member.invited + '/',
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: {for_what: this.member.for_what},
+                        success: function(result) {
+                            console.log(result);
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                            console.log(jqxhr.responseText);
+                        },
+                        method: "post"
+                    });
+                },
+                search_user(component) {
+                    $.ajax({
+                        url: "{% url 'search_user' %}",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: {search_string: component.query},
+                        success: function(result) {
+                            let username;
+                            for (username of result) {
+                                component.item_list.push({'id': username, 'value': username});
+                            }
+                            if (component.item_list.length == 0) {
+                                component.item_list.push({'id': null, 'value': 'пользователь не найден'});
+                            }
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                            console.log(jqxhr.responseText);
+                        },
+                        method: "post"
+                    });
+                },
+
+                select_user(id, value) {
+                    console.log(value);
+                    this.save_member();
+                    return true;
+                },
+                blur_selecting_user(component) {
+                    console.log(component);
+                    console.log(this.member);
+                },
+                blur_input_for_what(component) {
+                    console.log(this.member);
+                    this.save_member();
+                },
+
             },
         }
 
@@ -336,13 +377,12 @@
     <member-item
         v-for="member in member_list"
         :member="member"
-        :key="member.id"
     ></member-item>
 </table>`,
             data() {
                 return {
-                     member_list: [{'id': '1', 'invited': 'user1', 'inviting': 'test uswr', 'for_what': 'специалист по квантовым процессам', 'edit': false}],
-                    //member_list: JSON.parse(document.getElementById('members_json').textContent),
+                    //member_list: [{'id': '1', 'invited': 'user1', 'inviting': 'test uswr', 'for_what': 'специалист по квантовым процессам', 'edit': false}],
+                    member_list: JSON.parse(document.getElementById('members_json').textContent),
                 }
             },
             methods: {

@@ -14,7 +14,7 @@ from faci.forms import (
     FaciCanvasKeyThoughtsForm,
     FaciCanvasAgreementsForm,
 )
-from faci.models import FaciCanvas
+from faci.models import FaciCanvas, Member
 from faci.serializers import (
     AddFaciViewSerializer,
     GetListFaciSerializer,
@@ -34,7 +34,7 @@ class FaciEditorView(APIView):
             form_preparing = FaciCanvasPreparingForm(instance=faci)
             form_key_thoughts = FaciCanvasKeyThoughtsForm(instance=faci)
             form_agreements = FaciCanvasAgreementsForm(instance=faci)
-            members = list(faci.member_set.values('invited'))
+            members = [{'invited': member.invited.username, 'for_what': member.for_what, 'inviting': member.inviting.username} for member in faci.member_set.all()]
         else:
             # Создание
             if not request.user.is_authenticated:
@@ -89,17 +89,26 @@ class FaciEditorView(APIView):
         return Response(status=status.HTTP_200_OK, data=data_for_return)
 
 
-class FaciEditMembersView(APIView):
-    def post(self, request, canvas_id, member_id=None):
+class FaciEditMembersView(LoginRequiredMixin, APIView):
+    def post(self, request, canvas_id, invited_username):
         serializer = FaciEditMembersSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if member_id:
-            invited = User.get(username=data.invited)
-            member = Member(invited=invited, for_what=data.for_what)
+        invited = User.objects.get(username=invited_username)
+        faci_canvas = FaciCanvas.objects.get(pk=canvas_id)
+        member_queryset = Member.objects.filter(invited=invited, faci_canvas=faci_canvas)
+        if member_queryset.count():
+            member = member_queryset[0]
+            if member.for_what != data['for_what']:
+                member.for_what = data['for_what']
+                member.save('for_what')
         else:
-            pass
+            member = Member(invited=invited, for_what=data['for_what'], inviting=request.user, faci_canvas=faci_canvas)
+            member.save()
+
+        return Response(status=status.HTTP_200_OK, data={'success': True})
+        
 
 class FaciListView(View):
     def get(self, request):
