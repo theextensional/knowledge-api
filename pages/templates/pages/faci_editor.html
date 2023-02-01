@@ -8,17 +8,22 @@
 {% block content %}
     {{ members|json_script:'members_json' }}
     <style>
-        .card-body form {
+        .card-body {
             position: relative;
         }
         .form_sheet {
             position: absolute;
             top: 0;
             left: 0;
-            background-color: ghostwhite;
+            background-color: #eeeeee;
             opacity: 90%;
             width: 100%;
             height: 100%;
+            padding: 7px;
+            text-align: center;
+        }
+        .form_sheet span {
+            vertical-align: middle;
         }
         
         /* ListDown */
@@ -63,7 +68,7 @@
                    </form>
                 </div>
             </div>
-            
+
             <br>
 
             <div class="card">
@@ -79,21 +84,23 @@
                 </div>
             </div>
         </div>
-        
-        <div class="col-sm-3">
+
+        <br/>
+
+        <div class="col-sm-6">
             <div class="card">
                 <div class="card-header">
                     3. Повестка
                 </div>
                 <div class="card-body">
                     <form id="agenda_form">
-                        <div class="{% if step > 2 %}d-none {% endif %}form_sheet">Для открытия заполните, пожалуйста, список участников (2-й шаг)</div>
+                        <div class="{% if step > 2 %}d-none {% endif %}form_sheet"><span>Для открытия заполните, пожалуйста, список участников (2-й шаг)</span></div>
                     </form>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-sm-3">
+
+            <br/>
+            
             <div class="card">
                 <div class="card-header">
                     4. Подготовка
@@ -112,7 +119,7 @@
                             <label for="{{ form_aim.place.id_for_label }}" class="form-label">{{ form_aim.place.label }}</label>
                             {{ form_aim.place }}
                         </div>
-                        <div class="{% if step > 3 %}d-none {% endif %}form_sheet">Откроется после выполнения 3-го шага</div>
+                        <div class="{% if step > 3 %}d-none {% endif %}form_sheet"><span>Откроется после выполнения 3-го шага</span></div>
                     </form>
 
                 </div>
@@ -120,7 +127,7 @@
         </div>
     </div>
 
-    <br>
+    <br/>
 
     <div class="row">
         <div class="col-sm-8">
@@ -314,6 +321,7 @@
                         data: {for_what: this.member.for_what},
                         success: function(result) {
                             console.log(result);
+                            open_block(result['open_block']);
                         },
                         error: function(jqxhr, a, b) {
                             console.log('error');
@@ -407,6 +415,12 @@
     </script>
 
     <script>
+        function open_block(block_name) {
+            if (block_name) {
+                $('#'+block_name+'_form .form_sheet')[0].classList.add('d-none');
+            }
+        }
+    
         function save_form_aim(event) {
             $.ajax({
                 url: "",
@@ -419,7 +433,7 @@
                     if (result['id']) {
                         try {
                             history.pushState(null, null, location.href.replace('/new', '/'+result['id']));
-                            $('#members_form .form_sheet')[0].classList.add('d-none');
+                            open_block(result['open_block']);
                         } catch(e) {}
                     }
                 },

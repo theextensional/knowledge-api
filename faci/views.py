@@ -34,6 +34,7 @@ class FaciEditorView(APIView):
             form_preparing = FaciCanvasPreparingForm(instance=faci)
             form_key_thoughts = FaciCanvasKeyThoughtsForm(instance=faci)
             form_agreements = FaciCanvasAgreementsForm(instance=faci)
+            creator_username = faci.user_creator.username 
             members = [{'invited': member.invited.username, 'for_what': member.for_what, 'inviting': member.inviting.username} for member in faci.member_set.all()]
         else:
             # Создание
@@ -47,8 +48,10 @@ class FaciEditorView(APIView):
             form_preparing = FaciCanvasPreparingForm()
             form_key_thoughts = FaciCanvasKeyThoughtsForm()
             form_agreements = FaciCanvasAgreementsForm()
+            creator_username = request.user.username 
             members = []
 
+        members.insert(0, {'invited': creator_username, 'for_what': 'Инициатор встречи', 'inviting': creator_username})
         context = {
             'step': step,
             'form_aim': form_aim,
@@ -86,6 +89,8 @@ class FaciEditorView(APIView):
         else:
             data_for_return['errors'] = faci_form.errors
 
+        data_for_return['open_block'] = 'members'
+
         return Response(status=status.HTTP_200_OK, data=data_for_return)
 
 
@@ -106,9 +111,14 @@ class FaciEditMembersView(LoginRequiredMixin, APIView):
         else:
             member = Member(invited=invited, for_what=data['for_what'], inviting=request.user, faci_canvas=faci_canvas)
             member.save()
+            faci_canvas.step = 3
+            faci_canvas.save()
 
-        return Response(status=status.HTTP_200_OK, data={'success': True})
-        
+        data_for_return = {}
+        data_for_return['open_block'] = 'agenda'
+        data_for_return['success'] = True
+        return Response(status=status.HTTP_200_OK, data=data_for_return)
+
 
 class FaciListView(View):
     def get(self, request):
