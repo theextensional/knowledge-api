@@ -15,6 +15,9 @@ class Member(models.Model):
     inviting = models.ForeignKey(User, null=False, on_delete=models.CASCADE, related_name='faci_member_inviters')
     for_what = models.CharField(verbose_name='В каком вопросе компетентен', null=False, blank=False, max_length=200)
     faci_canvas = models.ForeignKey('faci.FaciCanvas', null=False, on_delete=models.CASCADE)
+    themes = models.CharField(verbose_name='Предлагаемые темы', null=False, default='', blank=True, max_length=1000)
+    themes_duration = models.IntegerField(verbose_name='Длительность выступления, минуты', null=False, default=5)
+    questions = models.CharField(verbose_name='Мнения и вопросы', null=False, default='', blank=True, max_length=2000)
 
     class Meta:
         db_table = 'app_faci_member'
@@ -40,7 +43,7 @@ class FaciCanvas(DatetimeMixin, models.Model):
     aim_type = models.IntegerField(verbose_name='Вид встречи', null=False, choices=AIM_TYPE_CHOICES, default=AIM_TYPE_SOLUTION)
     # Подготовка
     dt_meeting = models.DateTimeField(verbose_name='Дата и время', null=True)
-    duration = models.IntegerField(verbose_name='Длительность, минуты', null=False, default=30)
+    duration = models.IntegerField(verbose_name='Длительность встречи, минуты', null=False, default=30)
     place = models.CharField(verbose_name='Место', null=False, default='', max_length=100, blank=True)
     # Ключевые мысли
     key_thoughts = models.TextField(verbose_name='Ключевые мысли', max_length=10000, null=False, default='', blank=True)

@@ -34,8 +34,9 @@ class FaciEditorView(APIView):
             form_preparing = FaciCanvasPreparingForm(instance=faci)
             form_key_thoughts = FaciCanvasKeyThoughtsForm(instance=faci)
             form_agreements = FaciCanvasAgreementsForm(instance=faci)
-            creator_username = faci.user_creator.username 
+            creator_username = faci.user_creator.username
             members = [{'invited': member.invited.username, 'for_what': member.for_what, 'inviting': member.inviting.username} for member in faci.member_set.all()]
+            agendas = [{'invited': member.invited.username, 'themes': member.themes, 'themes_duration': member.themes_duration, 'questions': member.questions, 'self': member.invited.username == request.user.username} for member in faci.member_set.all()]
         else:
             # Создание
             if not request.user.is_authenticated:
@@ -50,6 +51,7 @@ class FaciEditorView(APIView):
             form_agreements = FaciCanvasAgreementsForm()
             creator_username = request.user.username 
             members = []
+            agendas = []
 
         members.insert(0, {'invited': creator_username, 'for_what': 'Инициатор встречи', 'inviting': creator_username})
         context = {
@@ -61,9 +63,12 @@ class FaciEditorView(APIView):
             'form_key_thoughts': form_key_thoughts,
             'form_agreements': form_agreements,
             'members': members,
+            'agendas': agendas,
         }
         return render(request, 'pages/faci_editor.html', context)
 
+
+class FaciEditAimView(APIView):
     def post(self, request, canvas_id=None):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)

@@ -7,6 +7,7 @@
 
 {% block content %}
     {{ members|json_script:'members_json' }}
+    {{ agendas|json_script:'agendas_json' }}
     <style>
         .card-body {
             position: relative;
@@ -94,6 +95,7 @@
                 </div>
                 <div class="card-body">
                     <form id="agenda_form">
+                        <div id="app_agenda"></div>
                         <div class="{% if step > 2 %}d-none {% endif %}form_sheet"><span>Для открытия заполните, пожалуйста, список участников (2-й шаг)</span></div>
                     </form>
                 </div>
@@ -164,6 +166,82 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const AgendaItem = {
+            props: ['invited', 'themes', 'themes_duration', 'questions'],
+            emits: [],
+            template: `
+<div>[[ invited ]]</div>
+<table>
+    <tr>
+        <td>Длительность: [[ themes_duration ]]</td>
+        <td rowspan="2" style="vertical-align: top;">
+            <span>Мнения/вопросы: <br/> [[ questions ]]</span>
+        </td>
+    </tr>
+    <tr>
+        <td>Темы для обсуждения: <br/> [[ themes ]]</td>
+    </tr>
+</table>
+<br>
+`,
+        };
+
+        const AgendaSelfItem = {
+            props: ['invited', 'themes', 'themes_duration', 'questions'],
+            emits: [],
+            data() {
+                return {themes: this.m_themes, themes_duration: this.m_themes_duration, questions: this.m_questions};
+            },
+            template: `
+<div>[[ invited ]]</div>
+<table>
+    <tr>
+        <td>Длительность: <input name="themes_duration" v-model="m_themes_duration"/> </td>
+        <td rowspan="2" style="vertical-align: top;">
+            <span>Мнения/вопросы: <br/> <textarea v-model="m_questions" name="questions"></textarea> </span>
+        </td>
+    </tr>
+    <tr>
+        <td>Темы для обсуждения: <br/> <textarea v-model="m_themes" name="themes"></textarea> </td>
+    </tr>
+</table>
+`,
+        };
+
+        var app_agenda = createApp({
+            props: [],
+            data() {
+                return {agendas: JSON.parse(document.getElementById('agendas_json').textContent)} 
+            },
+            template: `
+<template v-for="agenda in agendas">
+    <agenda-self-item
+        v-if="agenda.self"
+        :invited="agenda.invited"
+        :themes="agenda.themes"
+        :themes_duration="agenda.themes_duration"
+        :questions="agenda.questions"
+    ></agenda-self-item>
+    <agenda-item
+        v-else
+        :invited="agenda.invited"
+        :themes="agenda.themes"
+        :themes_duration="agenda.themes_duration"
+        :questions="agenda.questions"
+    ></agenda-item>
+
+</template>
+            `,
+            components: {AgendaItem, AgendaSelfItem},
+        });
+        
+        app_agenda.config.compilerOptions.delimiters = [ '[[', ']]' ];
+        var agenda_list = app_agenda.mount('#app_agenda');
+    </script>
 
     <script>
         const ListdownFieldItem = {
@@ -372,8 +450,6 @@
             },
         }
 
-        const { createApp } = Vue
-
         var app = createApp({
             template: `
 <table>
@@ -423,7 +499,7 @@
     
         function save_form_aim(event) {
             $.ajax({
-                url: "",
+                url: "aim/",
                 headers: {
                     "X-CSRFToken": "{{ csrf_token }}",
                 },
