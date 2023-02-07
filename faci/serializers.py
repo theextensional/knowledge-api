@@ -17,3 +17,9 @@ class GetListFaciSerializer(serializers.Serializer):
 class FaciEditMembersSerializer(serializers.Serializer):
     #invited = serializers.CharField(max_length=100)
     for_what = serializers.CharField(max_length=100)
+
+
+class FaciEditAgendaSerializer(serializers.Serializer):
+    themes = serializers.CharField(max_length=1000, allow_blank=True, allow_null=False)
+    questions = serializers.CharField(max_length=2000, allow_blank=True, allow_null=False)
+    themes_duration = serializers.IntegerField(min_value=1)

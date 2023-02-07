@@ -19,6 +19,7 @@ from faci.serializers import (
     AddFaciViewSerializer,
     GetListFaciSerializer,
     FaciEditMembersSerializer,
+    FaciEditAgendaSerializer,
 )
 
 
@@ -53,7 +54,6 @@ class FaciEditorView(APIView):
             members = []
             agendas = []
 
-        members.insert(0, {'invited': creator_username, 'for_what': 'Инициатор встречи', 'inviting': creator_username})
         context = {
             'step': step,
             'form_aim': form_aim,
@@ -91,6 +91,9 @@ class FaciEditAimView(APIView):
         if faci_form.is_valid():
             faci_form.save()
             data_for_return['id'] = faci_form.instance.pk
+            if not canvas_id:
+                member = Member(invited=request.user, inviting=request.user, what_for='Инициатор встречи', faci_canvas=faci_form.instance)
+                member.save()
         else:
             data_for_return['errors'] = faci_form.errors
 
@@ -124,6 +127,24 @@ class FaciEditMembersView(LoginRequiredMixin, APIView):
         data_for_return['success'] = True
         return Response(status=status.HTTP_200_OK, data=data_for_return)
 
+
+class FaciEditAgendaView(LoginRequiredMixin, APIView):
+    def post(self, request, canvas_id):
+        serializer = FaciEditAgendaSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        faci_canvas = FaciCanvas.objects.get(pk=canvas_id)
+        member = Member.objects.get(invited=request.user, faci_canvas=faci_canvas)
+        member.themes = data['themes']
+        member.themes_duration = data['themes_duration']
+        member.questions = data['questions']
+        member.save()
+
+        data_for_return = {}
+        #data_for_return['open_block'] = 'agenda'
+        data_for_return['success'] = True
+        return Response(status=status.HTTP_200_OK, data=data_for_return)
 
 class FaciListView(View):
     def get(self, request):

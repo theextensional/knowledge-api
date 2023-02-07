@@ -174,42 +174,39 @@
             props: ['invited', 'themes', 'themes_duration', 'questions'],
             emits: [],
             template: `
-<div>[[ invited ]]</div>
-<table>
-    <tr>
-        <td>Длительность: [[ themes_duration ]]</td>
-        <td rowspan="2" style="vertical-align: top;">
-            <span>Мнения/вопросы: <br/> [[ questions ]]</span>
-        </td>
-    </tr>
-    <tr>
-        <td>Темы для обсуждения: <br/> [[ themes ]]</td>
-    </tr>
-</table>
+<div style="background-color: var(--bs-card-border-color); padding: 5px; border-radius: 3px; display: flex; justify-content: space-between;">
+    <span>[[ themes_duration ]] мин</span>
+    <span>[[ invited ]]</span>
+</div>
+<div style="font-style: italic;">Темы:</div>
+[[ themes ]]
+<div style="font-style: italic;">Мнения/вопросы:</div>
+[[ questions ]]
 <br>
 `,
         };
 
         const AgendaSelfItem = {
             props: ['invited', 'themes', 'themes_duration', 'questions'],
-            emits: [],
+            emits: ['blur'],
             data() {
-                return {themes: this.m_themes, themes_duration: this.m_themes_duration, questions: this.m_questions};
+                return {m_themes: this.themes, m_themes_duration: this.themes_duration, m_questions: this.questions};
             },
             template: `
-<div>[[ invited ]]</div>
-<table>
-    <tr>
-        <td>Длительность: <input name="themes_duration" v-model="m_themes_duration"/> </td>
-        <td rowspan="2" style="vertical-align: top;">
-            <span>Мнения/вопросы: <br/> <textarea v-model="m_questions" name="questions"></textarea> </span>
-        </td>
-    </tr>
-    <tr>
-        <td>Темы для обсуждения: <br/> <textarea v-model="m_themes" name="themes"></textarea> </td>
-    </tr>
-</table>
+<div style="background-color: var(--bs-card-border-color); padding: 5px; border-radius: 3px; display: flex; justify-content: space-between;">
+    <span><input name="themes_duration" v-model="m_themes_duration" @blur="blur" min="1" max="120" type="number" style="width: 45pt; padding: 0 0 0 3px; display: initial;" class="form-control"/> мин</span>
+    <span>[[ invited ]]</span>
+</div>
+<div style="font-style: italic;">Темы:</div>
+<textarea v-model="m_themes" name="themes" @blur="blur" style="width: 100%;" rows="5" class="form-control"></textarea>
+<div style="font-style: italic;">Мнения/вопросы:</div>
+<textarea v-model="m_questions" name="questions" @blur="blur" style="width: 100%;" rows="5" class="form-control"></textarea>
 `,
+            methods: {
+                blur(event) {
+                    this.$emit('blur', this);
+                },
+            },
         };
 
         var app_agenda = createApp({
@@ -225,6 +222,7 @@
         :themes="agenda.themes"
         :themes_duration="agenda.themes_duration"
         :questions="agenda.questions"
+        @blur="save_agenda"
     ></agenda-self-item>
     <agenda-item
         v-else
@@ -236,6 +234,25 @@
 
 </template>
             `,
+            methods: {
+                save_agenda(component) {
+                    $.ajax({
+                        url: 'agenda/',
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: {themes: component.m_themes, themes_duration: component.m_themes_duration, questions: component.m_questions},
+                        success: function(result) {
+                            console.log(result);
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                        },
+                        method: "post"
+                    });
+                },
+            },
             components: {AgendaItem, AgendaSelfItem},
         });
         
@@ -390,6 +407,7 @@
             },
             methods: {
                 save_member() {
+                    let self = this;
                     $.ajax({
                         url: 'member/' + this.member.invited + '/',
                         headers: {
@@ -400,6 +418,7 @@
                         success: function(result) {
                             console.log(result);
                             open_block(result['open_block']);
+                            agenda_list.agendas.push({invited: self.member.invited, themes: '', themes_duration: 5, questions: '', self: self.member.invited == '{{request.user.username}}' });
                         },
                         error: function(jqxhr, a, b) {
                             console.log('error');
@@ -486,7 +505,7 @@
         });
         app.config.compilerOptions.delimiters = [ '[[', ']]' ];
         var member_list = app.mount('#app');
-    
+
         $("#add_member_button").click(member_list.add_member);
     </script>
 
