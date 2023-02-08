@@ -109,18 +109,25 @@
                 </div>
                 <div class="card-body">
                     <form id="preparing_form">
-                        <div class="mb-3">
-                            <label for="{{ form_aim.dt_meeting.id_for_label }}" class="form-label">{{ form_aim.dt_meeting.label }}</label>
-                            {{ form_aim.dt_meeting }}
+                        <div class="mb-3 row">
+                            <label for="{{ form_preparing.dt_meeting.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.dt_meeting.label }}</label>
+                            <div class="col-sm-6">
+                                {{ form_preparing.dt_meeting }}
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="{{ form_aim.duration.id_for_label }}" class="form-label">{{ form_aim.duration.label }}</label>
-                            {{ form_aim.duration }}
+                        <div class="mb-3 row">
+                            <label for="{{ form_preparing.duration.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.duration.label }}</label>
+                            <div class="col-sm-6">
+                                {{ form_preparing.duration }}
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="{{ form_aim.place.id_for_label }}" class="form-label">{{ form_aim.place.label }}</label>
-                            {{ form_aim.place }}
+                        <div class="mb-3 row">
+                            <label for="{{ form_preparing.place.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.place.label }}</label>
+                            <div class="col-sm-6">
+                                {{ form_preparing.place }}
+                            </div>
                         </div>
+                        <input type="button" value="{% if form_preparing.instance.meeting_status == form_preparing.instance.MEETING_STATUS_STARTED %}Завершить встречу{% else %}Начать встречу{% endif %}" class="form-control" id="button_start_meeting">
                         <div class="{% if step > 3 %}d-none {% endif %}form_sheet"><span>Откроется после выполнения 3-го шага</span></div>
                     </form>
 
@@ -132,7 +139,7 @@
     <br/>
 
     <div class="row">
-        <div class="col-sm-8">
+        <div class="col-sm-6">
             <div class="card">
                 <div class="card-header">
                     5. Ключевые мысли
@@ -140,12 +147,12 @@
                 <div class="card-body">
                     <form id="key_thoughts_form">
                         <div class="mb-3">
-                            <label for="{{ form_aim.key_thoughts.id_for_label }}" class="form-label">{{ form_aim.key_thoughts.label }}</label>
-                            {{ form_aim.key_thoughts }}
+                            <label for="{{ form_key_thoughts.key_thoughts.id_for_label }}" class="form-label">{{ form_key_thoughts.key_thoughts.label }}</label>
+                            {{ form_key_thoughts.key_thoughts }}
                         </div>
                         <div class="mb-3">
-                            <label for="{{ form_aim.parked_thoughts.id_for_label }}" class="form-label">{{ form_aim.parked_thoughts.label }}</label>
-                            {{ form_aim.parked_thoughts }}
+                            <label for="{{ form_key_thoughts.parked_thoughts.id_for_label }}" class="form-label">{{ form_key_thoughts.parked_thoughts.label }}</label>
+                            {{ form_key_thoughts.parked_thoughts }}
                         </div>
                         <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
                     </form>
@@ -153,13 +160,17 @@
             </div>
         </div>
 
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <div class="card">
                 <div class="card-header">
                     6. Договорённости
                 </div>
                 <div class="card-body">
                     <form id="agreements_form">
+                        <div class="mb-3">
+                            <label for="{{ form_agreements.other_agreements.id_for_label }}" class="form-label">{{ form_agreements.other_agreements.label }}</label>
+                            {{ form_agreements.other_agreements }}
+                        </div>
                         <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
                     </form>
                 </div>
@@ -245,6 +256,7 @@
                         data: {themes: component.m_themes, themes_duration: component.m_themes_duration, questions: component.m_questions},
                         success: function(result) {
                             console.log(result);
+                            open_block(result['open_block']);
                         },
                         error: function(jqxhr, a, b) {
                             console.log('error');
@@ -400,7 +412,7 @@
           name="for_what"
         ></toggle-field>
     </td>
-    <td>[[ member.inviting ]]</td>
+    <!--<td>[[ member.inviting ]]</td>-->
 </tr>`,
             components: {
                 ListdownField, ToggleField
@@ -471,11 +483,11 @@
 
         var app = createApp({
             template: `
-<table>
-    <tr>
+<table style="width: 100%;">
+    <tr style="text-align: center;">
         <th>Участник</th>
         <th>В каком вопросе компетентен</th>
-        <th>Кто пригласил</th>
+        <!--<th>Кто пригласил</th>-->
     </tr>
     <member-item
         v-for="member in member_list"
@@ -539,7 +551,96 @@
                 method: "post"
             });
         }
-        
+
+        function save_form_preparing(event) {
+            $.ajax({
+                url: "preparing/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: $(event.target.form).serialize(),
+                success: function(result) {
+                    if (result['id']) {
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    alert(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
+        function start_meeting(event) {
+            $.ajax({
+                url: "start_meeting/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: {},
+                success: function(result) {
+                    if (result['meeting_status'] == {{ form_preparing.instance.MEETING_STATUS_STARTED }}) {
+                        open_block('key_thoughts');
+                        open_block('agreements');
+                        event.target.value = 'Завершить встречу';
+                    } else if (result['meeting_status'] == {{ form_preparing.instance.MEETING_STATUS_FINISHED }}) {
+                        event.target.value = 'Начать встречу';
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
+        function save_key_thoughts(event) {
+            $.ajax({
+                url: "key_thoughts/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: $(event.target.form).serialize(),
+                success: function(result) {
+                    if (result['id']) {
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
+        function save_agreements(event) {
+            $.ajax({
+                url: "agreements/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: $(event.target.form).serialize(),
+                success: function(result) {
+                    if (result['id']) {
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
         $('#aim_form').change(save_form_aim);
+        $('#preparing_form').change(save_form_preparing);
+        $('#button_start_meeting').click(start_meeting);
+        $('#key_thoughts_form').change(save_key_thoughts);
+        $('#agreements_form').change(save_agreements);
     </script>
 {% endblock %}

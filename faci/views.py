@@ -20,6 +20,9 @@ from faci.serializers import (
     GetListFaciSerializer,
     FaciEditMembersSerializer,
     FaciEditAgendaSerializer,
+    FaciEditPreparingSerializer,
+    FaciEditKeyThoughtsSerializer,
+    FaciEditAgreementsSerializer,
 )
 
 
@@ -140,11 +143,78 @@ class FaciEditAgendaView(LoginRequiredMixin, APIView):
         member.themes_duration = data['themes_duration']
         member.questions = data['questions']
         member.save()
+        faci_canvas.step = 4
+        faci_canvas.save()
 
         data_for_return = {}
-        #data_for_return['open_block'] = 'agenda'
+        data_for_return['open_block'] = 'preparing'
         data_for_return['success'] = True
         return Response(status=status.HTTP_200_OK, data=data_for_return)
+
+
+class FaciEditPreparingView(LoginRequiredMixin, APIView):
+    def post(self, request, canvas_id):
+        serializer = FaciEditPreparingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        faci = FaciCanvas.objects.get(pk=canvas_id)
+        faci.dt_meeting = data['dt_meeting']
+        faci.place = data['place']
+        faci.duration = data['duration']
+        faci.save()
+
+        data_for_return = {}
+        data_for_return['success'] = True
+        return Response(status=status.HTTP_200_OK, data=data_for_return)
+
+
+class FaciStartView(LoginRequiredMixin, APIView):
+    def post(self, request, canvas_id):
+        faci = FaciCanvas.objects.get(pk=canvas_id)
+        faci.step = 6
+        if faci.meeting_status == faci.MEETING_STATUS_STARTED:
+            faci.meeting_status = faci.MEETING_STATUS_FINISHED
+        else:
+            faci.meeting_status = faci.MEETING_STATUS_STARTED
+        faci.save()
+
+        data_for_return = {}
+        data_for_return['success'] = True
+        data_for_return['meeting_status'] = faci.meeting_status
+        return Response(status=status.HTTP_200_OK, data=data_for_return)
+
+
+class FaciEditKeyThoughtsView(LoginRequiredMixin, APIView):
+    def post(self, request, canvas_id):
+        serializer = FaciEditKeyThoughtsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        faci = FaciCanvas.objects.get(pk=canvas_id)
+        faci.key_thoughts = data['key_thoughts']
+        faci.parked_thoughts = data['parked_thoughts']
+        faci.save()
+
+        data_for_return = {}
+        data_for_return['success'] = True
+        return Response(status=status.HTTP_200_OK, data=data_for_return)
+        
+
+class FaciEditAgreementsView(LoginRequiredMixin, APIView):
+    def post(self, request, canvas_id):
+        serializer = FaciEditAgreementsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        faci = FaciCanvas.objects.get(pk=canvas_id)
+        faci.other_agreements = data['other_agreements']
+        faci.save()
+
+        data_for_return = {}
+        data_for_return['success'] = True
+        return Response(status=status.HTTP_200_OK, data=data_for_return)
+
 
 class FaciListView(View):
     def get(self, request):

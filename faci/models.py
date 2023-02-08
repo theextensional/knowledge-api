@@ -36,20 +36,35 @@ class FaciCanvas(DatetimeMixin, models.Model):
         (AIM_TYPE_SYNC, 'Синхронизироваться между собой'),
         (AIM_TYPE_OTHER, 'Прочее'),
     )
+
+    MEETING_STATUS_EDITING = 1
+    MEETING_STATUS_STARTED = 2
+    MEETING_STATUS_FINISHED = 3
+    MEETING_STATUS_CHOICES = (
+        (MEETING_STATUS_EDITING, 'Редактируется'),
+        (MEETING_STATUS_STARTED, 'Началась'),
+        (MEETING_STATUS_FINISHED, 'Окончена'),
+    )
+
     user_creator = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
-    #  Цель
+    #  1. Цель
     aim = models.CharField(verbose_name='Что мы пытаемся достичь?', max_length=255, null=False)
     if_not_reached = models.CharField(verbose_name='Что произойдёт, если цель не будет достигнута?', max_length=255, null=False)
     aim_type = models.IntegerField(verbose_name='Вид встречи', null=False, choices=AIM_TYPE_CHOICES, default=AIM_TYPE_SOLUTION)
-    # Подготовка
+    # 4. Подготовка
     dt_meeting = models.DateTimeField(verbose_name='Дата и время', null=True)
-    duration = models.IntegerField(verbose_name='Длительность встречи, минуты', null=False, default=30)
+    duration = models.IntegerField(verbose_name='Длительность', null=False, default=30)
     place = models.CharField(verbose_name='Место', null=False, default='', max_length=100, blank=True)
-    # Ключевые мысли
+    # 5. Ключевые мысли
     key_thoughts = models.TextField(verbose_name='Ключевые мысли', max_length=10000, null=False, default='', blank=True)
     parked_thoughts = models.TextField(verbose_name='Парковка', max_length=10000, null=False, default='', blank=True)
+    # 6. Договорённости
+    other_agreements = models.TextField(verbose_name='Прочие договорённости', max_length=10000, null=False, default='', blank=True)
+
+    # Служебные поля
     step = models.IntegerField(verbose_name='Шаг', null=False, default=1)
     is_closed = models.IntegerField(verbose_name='Холст закрыт', null=False, default=0)
+    meeting_status = models.IntegerField(verbose_name='Статус встречи', choices=MEETING_STATUS_CHOICES, default=MEETING_STATUS_EDITING, null=False, blank=False)
 
     class Meta:
         db_table = 'app_faci_canvas'

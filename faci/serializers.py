@@ -23,3 +23,18 @@ class FaciEditAgendaSerializer(serializers.Serializer):
     themes = serializers.CharField(max_length=1000, allow_blank=True, allow_null=False)
     questions = serializers.CharField(max_length=2000, allow_blank=True, allow_null=False)
     themes_duration = serializers.IntegerField(min_value=1)
+
+
+class FaciEditPreparingSerializer(serializers.Serializer):
+    duration = serializers.IntegerField(min_value=1)
+    place = serializers.CharField(max_length=100, allow_blank=True, allow_null=False)
+    dt_meeting = serializers.DateTimeField()
+
+
+class FaciEditKeyThoughtsSerializer(serializers.Serializer):
+    key_thoughts = serializers.CharField(max_length=10000, allow_blank=True, allow_null=False)
+    parked_thoughts = serializers.CharField(max_length=10000, allow_blank=True, allow_null=False)
+
+
+class FaciEditAgreementsSerializer(serializers.Serializer):
+    other_agreements = serializers.CharField(max_length=10000, allow_blank=True, allow_null=False)
