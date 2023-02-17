@@ -44,136 +44,123 @@
         .suggestions div:hover {background:#ffe4e4;}
     </style>
 
-    <div class="row">
+    <div class="row accordion">
         <div class="col-sm-6">
-            <div class="card">
-                <div class="card-header">
+            <div class="card accordion-item">
+                <div class="accordion-header accordion-button card-header" data-bs-toggle="collapse" data-bs-target="#aim_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
                     1. Цель
                 </div>
-                <div class="card-body">
-                    <form id="aim_form">
-                        <div class="mb-3">
-                            <label for="{{ form_aim.aim_type.id_for_label }}" class="form-label">{{ form_aim.aim_type.label }}</label>
-                            {{ form_aim.aim_type }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ form_aim.aim.id_for_label }}" class="form-label">{{ form_aim.aim.label }}</label>
-                            {{ form_aim.aim }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ form_aim.if_not_reached.id_for_label }}" class="form-label">{{ form_aim.if_not_reached.label }}</label>
-                            {{ form_aim.if_not_reached }}
-                        </div>
+                <form id="aim_form" class="card-body accordion-collapse collapse show">
+                    <div class="mb-3">
+                        <label for="{{ form_aim.aim_type.id_for_label }}" class="form-label">{{ form_aim.aim_type.label }}</label>
+                        {{ form_aim.aim_type }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form_aim.aim.id_for_label }}" class="form-label">{{ form_aim.aim.label }}</label>
+                        {{ form_aim.aim }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form_aim.if_not_reached.id_for_label }}" class="form-label">{{ form_aim.if_not_reached.label }}</label>
+                        {{ form_aim.if_not_reached }}
+                    </div>
 
-                        <input type="button" value="Сохранить{% if step == 1 %} и перейти к заполнению участников{% endif %}" class="form-control">
-                   </form>
-                </div>
+                    <input type="button" value="Сохранить{% if step == 1 %} и перейти к заполнению участников{% endif %}" class="form-control">
+                </form>
             </div>
 
             <br>
 
-            <div class="card">
-                <div class="card-header">
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#members_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
                     2. Участники
                 </div>
-                <div class="card-body">
-                    <form id="members_form">
-                        <div id="app"></div>
-                        <input type="button" value="Добавить" id="add_member_button" class="form-control">              
-                        <div class="{% if step > 1 %}d-none {% endif %}form_sheet">Для открытия выполните 1-й шаг</div>
-                    </form>
-                </div>
+                <form id="members_form" class="card-body accordion-collapse collapse show">
+                    <div id="app"></div>
+                    <input type="button" value="Добавить" id="add_member_button" class="form-control">              
+                    <div class="{% if step > 1 %}d-none {% endif %}form_sheet">Для открытия выполните 1-й шаг</div>
+                </form>
             </div>
         </div>
 
         <br/>
 
         <div class="col-sm-6">
-            <div class="card">
-                <div class="card-header">
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#agenda_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
                     3. Повестка
                 </div>
-                <div class="card-body">
-                    <form id="agenda_form">
-                        <div id="app_agenda"></div>
-                        <div class="{% if step > 2 %}d-none {% endif %}form_sheet"><span>Для открытия заполните, пожалуйста, список участников (2-й шаг)</span></div>
-                    </form>
-                </div>
+                <form id="agenda_form" class="card-body accordion-collapse collapse show">
+                    <div id="app_agenda"></div>
+                    <div class="{% if step > 2 %}d-none {% endif %}form_sheet"><span>Для открытия заполните, пожалуйста, список участников (2-й шаг)</span></div>
+                </form>
             </div>
 
             <br/>
             
-            <div class="card">
-                <div class="card-header">
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#preparing_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
                     4. Подготовка
                 </div>
-                <div class="card-body">
-                    <form id="preparing_form">
-                        <div class="mb-3 row">
-                            <label for="{{ form_preparing.dt_meeting.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.dt_meeting.label }}</label>
-                            <div class="col-sm-6">
-                                {{ form_preparing.dt_meeting }}
-                            </div>
+                <form id="preparing_form" class="card-body accordion-collapse collapse show">
+                    <div class="mb-3 row">
+                        <label for="{{ form_preparing.dt_meeting.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.dt_meeting.label }}</label>
+                        <div class="col-sm-6">
+                            {{ form_preparing.dt_meeting }}
                         </div>
-                        <div class="mb-3 row">
-                            <label for="{{ form_preparing.duration.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.duration.label }}</label>
-                            <div class="col-sm-6">
-                                {{ form_preparing.duration }}
-                            </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="{{ form_preparing.duration.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.duration.label }}</label>
+                        <div class="col-sm-6">
+                            {{ form_preparing.duration }}
                         </div>
-                        <div class="mb-3 row">
-                            <label for="{{ form_preparing.place.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.place.label }}</label>
-                            <div class="col-sm-6">
-                                {{ form_preparing.place }}
-                            </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="{{ form_preparing.place.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.place.label }}</label>
+                        <div class="col-sm-6">
+                            {{ form_preparing.place }}
                         </div>
-                        <input type="button" value="{% if form_preparing.instance.meeting_status == form_preparing.instance.MEETING_STATUS_STARTED %}Завершить встречу{% else %}Начать встречу{% endif %}" class="form-control" id="button_start_meeting">
-                        <div class="{% if step > 3 %}d-none {% endif %}form_sheet"><span>Откроется после выполнения 3-го шага</span></div>
-                    </form>
-
-                </div>
+                    </div>
+                    <input type="button" value="{% if form_preparing.instance.meeting_status == form_preparing.instance.MEETING_STATUS_STARTED %}Завершить встречу{% else %}Начать встречу{% endif %}" class="form-control" id="button_start_meeting">
+                    <div class="{% if step > 3 %}d-none {% endif %}form_sheet"><span>Откроется после выполнения 3-го шага</span></div>
+                </form>
             </div>
         </div>
     </div>
 
     <br/>
 
-    <div class="row">
+    <div class="row accordion">
         <div class="col-sm-6">
-            <div class="card">
-                <div class="card-header">
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#key_thoughts_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
                     5. Ключевые мысли
                 </div>
-                <div class="card-body">
-                    <form id="key_thoughts_form">
-                        <div class="mb-3">
-                            <label for="{{ form_key_thoughts.key_thoughts.id_for_label }}" class="form-label">{{ form_key_thoughts.key_thoughts.label }}</label>
-                            {{ form_key_thoughts.key_thoughts }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ form_key_thoughts.parked_thoughts.id_for_label }}" class="form-label">{{ form_key_thoughts.parked_thoughts.label }}</label>
-                            {{ form_key_thoughts.parked_thoughts }}
-                        </div>
-                        <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
-                    </form>
-                </div>
+                <form id="key_thoughts_form" class="card-body accordion-collapse collapse show">
+                    <div class="mb-3">
+                        <label for="{{ form_key_thoughts.key_thoughts.id_for_label }}" class="form-label">{{ form_key_thoughts.key_thoughts.label }}</label>
+                        {{ form_key_thoughts.key_thoughts }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form_key_thoughts.parked_thoughts.id_for_label }}" class="form-label">{{ form_key_thoughts.parked_thoughts.label }}</label>
+                        {{ form_key_thoughts.parked_thoughts }}
+                    </div>
+                    <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
+                </form>
             </div>
         </div>
 
         <div class="col-sm-6">
-            <div class="card">
-                <div class="card-header">
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#agreements_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
                     6. Договорённости
                 </div>
-                <div class="card-body">
-                    <form id="agreements_form">
-                        <div class="mb-3">
-                            <label for="{{ form_agreements.other_agreements.id_for_label }}" class="form-label">{{ form_agreements.other_agreements.label }}</label>
-                            {{ form_agreements.other_agreements }}
-                        </div>
-                        <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
-                    </form>
-                </div>
+                <form id="agreements_form" class="card-body accordion-collapse collapse show">
+                    <div class="mb-3">
+                        <label for="{{ form_agreements.other_agreements.id_for_label }}" class="form-label">{{ form_agreements.other_agreements.label }}</label>
+                        {{ form_agreements.other_agreements }}
+                    </div>
+                    <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
+                </form>
             </div>
         </div>
     </div>
@@ -189,11 +176,19 @@
     <span>[[ themes_duration ]] мин</span>
     <span>[[ invited ]]</span>
 </div>
-<div style="font-style: italic;">Темы:</div>
-[[ themes ]]
-<div style="font-style: italic;">Мнения/вопросы:</div>
-[[ questions ]]
+
 <br>
+
+<div v-if="themes">
+    <div style="font-style: italic;">Темы:</div>
+    <p style="padding-left: 15px;">[[ themes ]]</p>
+</div>
+
+
+<div v-if="questions">
+    <div style="font-style: italic;">Мнения/вопросы:</div>
+    <p style="padding-left: 15px;">[[ questions ]]</p>
+</div>
 `,
         };
 
@@ -208,10 +203,18 @@
     <span><input name="themes_duration" v-model="m_themes_duration" @blur="blur" min="1" max="120" type="number" style="width: 45pt; padding: 0 0 0 3px; display: initial;" class="form-control"/> мин</span>
     <span>[[ invited ]]</span>
 </div>
+
+<br>
+
 <div style="font-style: italic;">Темы:</div>
 <textarea v-model="m_themes" name="themes" @blur="blur" style="width: 100%;" rows="5" class="form-control"></textarea>
+
+<br>
+
 <div style="font-style: italic;">Мнения/вопросы:</div>
 <textarea v-model="m_questions" name="questions" @blur="blur" style="width: 100%;" rows="5" class="form-control"></textarea>
+
+<br>
 `,
             methods: {
                 blur(event) {
@@ -235,14 +238,17 @@
         :questions="agenda.questions"
         @blur="save_agenda"
     ></agenda-self-item>
-    <agenda-item
+    <div
         v-else
-        :invited="agenda.invited"
-        :themes="agenda.themes"
-        :themes_duration="agenda.themes_duration"
-        :questions="agenda.questions"
-    ></agenda-item>
-
+    >
+        <agenda-item
+            v-if="agenda.themes || agenda.questions"
+            :invited="agenda.invited"
+            :themes="agenda.themes"
+            :themes_duration="agenda.themes_duration"
+            :questions="agenda.questions"
+        ></agenda-item>
+    </div>
 </template>
             `,
             methods: {
