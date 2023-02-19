@@ -13,10 +13,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from custom_auth.models import ExternGoogleUser, Token
+from custom_auth.models import ExternGoogleUser, Token, get_hash
 from custom_auth.serializers import (
     AddTokenSerializer,
     EditTokenSerializer,
+    ExternRegistrationViewSerializer,
     RegistrationSerializer,
 )
 
@@ -101,11 +102,8 @@ class ExternAuthGoogleView(APIView):
             context = {'success': False, 'title': 'Ошибка авторизации через Google', 'message': 'E-mail в учётной записи Google не подтверждён. Пожалуйста, подтвердите e-mail и попробуйте авторизоваться вновь.'}
             return render(request, 'pages/message.html', context)
 
-        user_hashed_id = user_info['id']
-        temp_username = '{}-{}'.format(
-            user_info['email'].split('@')[0],
-            user_hashed_id[:15],
-        )
+        user_hashed_id = get_hash(user_info['id'])
+        temp_username = get_hash('{}{}'.format(user_info['email'], user_info['id']))
         ext_user_set = ExternGoogleUser.objects.filter(extern_id=user_hashed_id)
         if not ext_user_set.count():
             # Регистрируем пользователя
@@ -131,13 +129,21 @@ class ExternAuthGoogleView(APIView):
 
 class ExternRegistrationView(APIView):
     def post(self, request):
-        data = {'username': request.POST['username']}#serializer.validated_data
-        user = User.objects.filter(username=data['username'])
-        if user.count():
-            context = {'error': 'Пользователь с таким username уже существует. Пожалуйста, выберите другое username'}
+        serializer = ExternRegistrationViewSerializer(data=request.POST)
+        if not serializer.is_valid(raise_exception=False):
+            context = {'errors': serializer.errors}
             return render(request, 'pages/change_username_after_first_extern_auth.html', context=context)
 
+        data = serializer.validated_data
+        if data['username'] != request.user.username:
+            user = User.objects.filter(username=data['username'])
+            if user.count():
+                context = {'errors': {'username': ['Такой пользователь уже существует. Пожалуйста, напишите другое имя пользователя']}}
+                return render(request, 'pages/change_username_after_first_extern_auth.html', context=context)
+
         request.user.username = data['username']
+        request.user.first_name = data['first_name']
+        request.user.last_name = data.get('last_name')
         request.user.save()
         ext_user = ExternGoogleUser.objects.filter(user=request.user).get()
         ext_user.is_username_changed = True
@@ -167,7 +173,7 @@ class AddTokenView(LoginRequiredMixin, APIView):
         data = serializer.validated_data
 
         token_str_source = token_urlsafe(64)
-        token_str_hashed = Token.get_hash(token_str_source)
+        token_str_hashed = get_hash(token_str_source)
         token = Token(user=request.user, app_name=data['app_name'], token=token_str_hashed)
         token.save()
         data_for_response = {
