@@ -17,7 +17,6 @@
        
        .app_name {
            width: 80%;
-           cursor: pointer;
            display: inline-block;
            border-bottom: 1px solid #d8d8d8;
            padding: 3px 0px;
@@ -69,8 +68,13 @@
 <form class="item" @submit.prevent @keyup.enter.prevent>
     <input name="token_id" v-bind:value="token.id" type="hidden"/>
 
-    <span class="app_name" @click="edit_app_name">[[ token.app_name ]]</span>
-    <input v-model.trim="token.app_name" name="app_name" @blur="view_app_name" class="d-none"/>
+    <toggle-field
+    @blur="blur_app_name"
+    :value="token.app_name"
+    :id="token.id"
+    name="app_name"
+    class="app_name"
+    ></toggle-field>
 
     <input @click="delete_token" type="button" value="x" class="form-control delete_button" style="width: auto; display: inline;"/>
 </form>`,
@@ -94,66 +98,43 @@
                         method: "post"
                     });
                 } else {
-                    event.target.form.remove();
+                    this.$el.remove();
                 }
             },
-            edit_app_name(event) {
-                let field = event.target.closest("form").app_name;
-                let sign = event.target;
-                sign.classList.add('d-none');
-                field.classList.remove('d-none');
-                field.dataset.previous_value = this.token.app_name;
-                field.focus();
-            },
-            view_app_name(event) {
-                let field = event.target;
-                let sign = event.target.closest("form").querySelector('.app_name');
-                function _view_app_name() {
-                    sign.classList.remove('d-none');
-                    field.classList.add('d-none');
-                }
-
+            blur_app_name(component, is_exist, is_filled) {
                 _this = this;
-                if (this.token.id) {
-                    if (field.value && this.token.app_name != field.dataset.previous_value) {
-                        $.ajax({
-                            url: "{% url 'custom_auth_edit_token' %}",
-                            headers: {
-                                "X-CSRFToken": "{{ csrf_token }}",
-                            },
-                            dataType: 'json',
-                            data: $(event.target.form).serialize(),
-                            success: function(result) {
-                                _view_app_name();
-                            },
-                            error: function(jqxhr, a, b) {
-                                field.focus();
-                                console.log('error');
-                                console.log(jqxhr.responseText);
-                            },
-                            method: "post"
-                        });
-                    } else {
-                        _view_app_name();
-                        this.token.app_name = field.dataset.previous_value;
-                    }
+                if (is_exist) {
+                    $.ajax({
+                        url: "{% url 'custom_auth_edit_token' %}",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: $(_this.$el).serialize(),
+                        success: function(result) {
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                            console.log(jqxhr.responseText);
+                        },
+                        method: "post"
+                    });
                 } else {
-                    if (field.value) {
+                    if (is_filled) {
                         $.ajax({
                             url: "{% url 'custom_auth_add_token' %}",
                             headers: {
                                 "X-CSRFToken": "{{ csrf_token }}",
                             },
                             dataType: 'json',
-                            data: $(event.target.form).serialize(),
+                            data: $(_this.$el).serialize(),
                             success: function(result) {
+                                _this.token.app_name = component.mvalue;
                                 _this.token.id = result.id;
-                                _view_app_name();
                                 let w = W.open('window_token_is_ready', {text_title: "Токен успешно сгенерирован :)"});
                                 W.get_wbody(w).querySelector('.token_placeholder span').textContent = result.token;
                             },
                             error: function(jqxhr, a, b) {
-                                field.focus();
                                 console.log('error');
                                 console.log(jqxhr.responseText);
                             },
@@ -163,8 +144,10 @@
                         this.delete_token(event);
                     }
                 }
-                
             },
+        },
+        components: {
+            ToggleField,
         }
     }
     
@@ -180,7 +163,7 @@
             add_token(event) {
                 this.token_list.push({'id': '', 'app_name': '', 'token': ''});
                 setTimeout(function() {
-                    click_on_last('.app_name');
+                    click_on_last('.app_name span');
                 }, 20);
             },
         },

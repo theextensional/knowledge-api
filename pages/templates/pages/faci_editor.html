@@ -354,47 +354,6 @@
                 ListdownFieldItem
             },
         }
-    
-        const ToggleField = {
-            props: ["id", "value", "name"],
-            emits: ['focus', 'blur'],
-            template: `
-<div>
-    <span class="el_sign" @click="focus" style="cursor: pointer;" :class="{'d-none': is_edit}">[[ mvalue ]]</span>
-    <input v-model.trim="mvalue" :name="name" @blur="blur" class="el_field" :class="{'d-none': !is_edit}"/>
-</div>`,
-            data() {
-                return {mvalue: this.value, mid: this.id, previous_value: this.value, is_edit: false};
-            },
-            methods: {
-                focus(event) {
-                    this.is_edit = true;
-                    let field = this.$el.querySelector('.el_field');
-                    this.previous_value = this.mvalue;
-                    self = this;
-                    setTimeout(function() {
-                        field.focus();
-                        self.$emit('focus', self);
-                    }, 20);
-                },
-                blur(event) {
-                    this.is_edit = false;00
-                    if (this.mid) {
-                        if (this.mvalue) {
-                            if (this.mvalue != this.previous_value) {
-                                this.$emit('blur', this);
-                            }
-                        } else {
-                            this.mvalue = this.previous_value;
-                        }
-                    } else {
-                        if (!this.mvalue) {
-                            this.mvalue = this.previous_value;
-                        }
-                    }
-                },
-            },
-        }
 
         const MemberItem = {
             props: ["member"],
