@@ -40,12 +40,9 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
-    def post(self, request):
-        data = {}
+    def get(self, request):
         logout(request)
-        data['success'] = True
-        return Response(status=status.HTTP_200_OK, data=data)
-
+        return Response(status=status.HTTP_307_TEMPORARY_REDIRECT, headers={'location': reverse('index')})
 
 class RegistrationView(APIView):
     def post(self, request):

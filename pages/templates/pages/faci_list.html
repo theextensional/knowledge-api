@@ -1,9 +1,9 @@
 {% extends 'template.html' %}
 
 {% block title %}
-    Холсты фасилитации
+    Встречи
 {% endblock %}
-{% block page_title %}Холсты фасилитации{% endblock %}
+{% block page_title %}Встречи{% endblock %}
 
 {% block content %}
     <style>
@@ -32,11 +32,11 @@
     
     {% if request.user.is_authenticated %}
         <p style="text-align: right;">
-            <a href="{% url 'faci_new' %}" style="text-decoration: none"><input type="button" value="Добавить холст" id="add_token_button" class="form-control" style="width: auto; display: inline;"></a>
+            <a href="{% url 'faci_new' %}" style="text-decoration: none"><input type="button" value="Новая встреча" id="add_token_button" class="form-control" style="width: auto; display: inline;"></a>
         </p>
     {% endif %}
     
-    <p>Подробнее о фасилитации можно <a href="https://telegra.ph/article-11-16-4" target="_blank">узнать по ссылке</a>.</p>
+    <p>Сделать проведение встреч продуктивным поможет ознакомление с холстом фасилитации: <a href="https://telegra.ph/article-11-16-4" target="_blank">узнать по ссылке</a>.</p>
 
     {% for faci in facis %}
         <div class="faci_card">

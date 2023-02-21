@@ -1,10 +1,14 @@
 {% extends 'template.html' %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}Заметки{% endblock %}
 
-{% block page_title %}{{ title }}{% endblock %}
+{% block page_title %}Заметки{% endblock %}
 
 {% block content %}
+    <p>
+        Совокупность заметок является базой знаний. Поиск по базе доступен через телеграм-бот и дискорд-сервер. 
+    </p>
+
     {% if request.user.is_authenticated %}
         {% for note in notes %}
             <h3>{{ note.title }}</h3>

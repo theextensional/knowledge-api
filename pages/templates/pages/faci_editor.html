@@ -1,9 +1,9 @@
 {% extends 'template.html' %}
 
 {% block title %}
-    {% if form_aim.instance.id %} <a style="text-decoration: none;" href="{% url 'faci_list' %}">🡄</a> Редактирование холста {% else %} Новый холст {% endif %}
+    {% if form_aim.instance.id %} <a style="text-decoration: none;" href="{% url 'faci_list' %}">🡄</a> Редактирование встречи {% else %} Новая встреча {% endif %}
 {% endblock %}
-{% block page_title %} Холст фасилитации {% endblock %}
+{% block page_title %} Встреча (холст фасилитации) {% endblock %}
 
 {% block content %}
     {{ members|json_script:'members_json' }}

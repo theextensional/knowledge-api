@@ -1,0 +1,83 @@
+{% extends 'template.html' %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block page_title %}Профиль{% endblock %}
+
+{% block content %}
+    <form>
+        <div id="username-group" class="form-group">
+            <div class="form-floating">
+                <input class="form-control" placeholder="имя пользователя" id="field_username" name="username" disabled value="{{ request.user.username }}">
+                <label for="field_username">Пользователь</label>
+            </div>
+        </div>
+        <br />
+        <div id="email-group" class="form-group">
+            <div class="form-floating">
+                <input class="form-control" placeholder="e-mail" id="field_email" name="email" disabled value="{{ request.user.email }}">
+                <label for="field_email">E-mail</label>
+            </div>
+        </div>
+        <br />
+        <div id="first_name-group" class="form-group">
+            <div class="form-floating">
+                <input class="form-control" placeholder="имя" id="field_first_name" name="first_name" value="{{ request.user.first_name }}">
+                <label for="field_first_name">Имя</label>
+            </div>
+        </div>
+        <br />
+        <div id="last_name-group" class="form-group">
+            <div class="form-floating">
+                <input class="form-control" placeholder="фамилия" id="field_last_name" name="last_name" value="{{ request.user.last_name }}">
+                <label for="field_last_name">Фамилия</label>
+            </div>
+        </div>
+        <br />
+        <input type="button" class="btn btn-primary" value="Сохранить" id="btn_save_profile">
+    </form>
+    
+    <script>
+        function set_valid_field(event, field_name) {
+            $('#'+field_name+'-group .help-block').remove();
+            $(event.target.form[field_name]).removeClass("is-invalid");
+            $(event.target.form[field_name]).addClass("is-valid");
+            setTimeout(
+                function() {$(event.target.form[field_name]).removeClass("is-valid")},
+                2000,
+            );
+        }
+        
+        function save_profile(event) {
+            $.ajax({
+                url: "{% url 'custom_profile' %}",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: $(event.target.form).serialize(),
+                success: function(result) {
+                    if (result.success) {
+                        for (let field_name of result.updated) {
+                            set_valid_field(event, field_name);
+                        }
+                    } else {
+                        for (let field_name in result.errors) {
+                            $(event.target.form[field_name]).addClass("is-invalid");
+                            $('#'+field_name+'-group').append(
+                               '<div class="help-block">' + result.errors[field_name] + "</div>"
+                            );
+                        }
+                   }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+        
+        $("#btn_save_profile").click(save_profile);
+    </script>
+{% endblock %}

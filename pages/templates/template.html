@@ -54,7 +54,7 @@
     </style>
     <div class="container">
         <ul class="nav nav-tabs">
-            {% url 'about_project' as url %}
+            {% url 'index' as url %}
             <li class="nav-item">
                 <a href="{{ url }}" class="nav-link{% if request.path == url %} active{% endif %}">О проекте</a>
             </li>
@@ -72,15 +72,15 @@
                 </ul>
             </li>
             <li class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Приложения</a>
+                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Модули</a>
                 <ul class="dropdown-menu">
                     {% url 'note_editor' as url %}
                     <li>
-                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Редактор заметок</a>
+                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Заметки</a>
                     </li>
                     {% url 'faci_list' as url %}
                     <li>
-                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Холсты фасилитации</a>
+                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Встречи</a>
                     </li>
                 </ul>
             </li>
@@ -92,12 +92,16 @@
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">{{ request.user.username }}</a>
                 <ul class="dropdown-menu">
+                    {% url 'custom_profile' as url %}
+                    <li>
+                        <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Профиль</a>
+                    </li>
                     {% url 'custom_auth_tokens' as url %}
                     <li>
                         <a href="{{ url }}" class="dropdown-item{% if request.path == url %} active{% endif %}">Токены для API</a>
                     </li>
                     <li>
-                        <a class="dropdown-item">
+                        <a class="dropdown-item" href="{% url 'custom_logout' %}">
                             <input class="form-control" type="button" value="Выйти" id="logout_button"/>
                         </a>
                     </li>
@@ -164,27 +168,7 @@
 
     <script src="{% static 'pages/extern/bootstrap.bundle.min.js' %}" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script> 
     <script>
-        {% if request.user.is_authenticated %}
-            $('#logout_button').click(function(event) {
-                $.ajax({
-                    url: "{% url 'custom_logout' %}",
-                    headers: {
-                        "X-CSRFToken": "{{ csrf_token }}",
-                    },
-                    dataType: 'json',
-                    data: {},
-                    success: function(result) {
-                        console.log(result);
-                        if (result.success) {window.location = window.location;}
-                    },
-                    error: function(jqxhr, a, b) {
-                        console.log('error');
-                        console.log(jqxhr.responseText);
-                    },
-                    method: "post"
-                });
-            });
-        {% else %}
+        {% if not request.user.is_authenticated %}
             $('#btn_toggle_login_box').click(function(event) {
                 $('#login_box').toggle();
             });
