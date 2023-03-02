@@ -38,14 +38,25 @@
     </form>
     
     <script>
-        function set_valid_field(event, field_name) {
-            $('#'+field_name+'-group .help-block').remove();
-            $(event.target.form[field_name]).removeClass("is-invalid");
-            $(event.target.form[field_name]).addClass("is-valid");
-            setTimeout(
-                function() {$(event.target.form[field_name]).removeClass("is-valid")},
-                2000,
-            );
+        function set_valid_field(form, field_names) {
+            for (let field_name of field_names) {
+                $(form).find('#'+field_name+'-group .help-block').remove();
+                $(form[field_name]).removeClass("is-invalid");
+                $(form[field_name]).addClass("is-valid");
+                setTimeout(
+                    function() {$(form[field_name]).removeClass("is-valid")},
+                    2000,
+                );
+            }
+        }
+
+        function set_invalid_field(form, errors) {
+            for (let field_name in errors) {
+                $(form[field_name]).addClass("is-invalid");
+                $(form).find('#'+field_name+'-group').append(
+                   '<div class="help-block">' + errors[field_name] + "</div>"
+                );
+            }
         }
         
         function save_profile(event) {
@@ -58,16 +69,9 @@
                 data: $(event.target.form).serialize(),
                 success: function(result) {
                     if (result.success) {
-                        for (let field_name of result.updated) {
-                            set_valid_field(event, field_name);
-                        }
+                        set_valid_field(event.target.form, result.updated);
                     } else {
-                        for (let field_name in result.errors) {
-                            $(event.target.form[field_name]).addClass("is-invalid");
-                            $('#'+field_name+'-group').append(
-                               '<div class="help-block">' + result.errors[field_name] + "</div>"
-                            );
-                        }
+                        set_invalid_field(event.target.form, result.errors);
                    }
                 },
                 error: function(jqxhr, a, b) {

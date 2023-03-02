@@ -17,7 +17,6 @@ from rest_framework import status
 from note.load_from_github import prepare_to_search, get_root_url, search
 from note.credentials import args_uploader
 from note.models import Note
-from utils.redis import get_redis
 
 
 @api_view(('GET',))
@@ -45,10 +44,8 @@ def note_search(request, query):
     if not (offset >= 0):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `offset` parameter'})
 
-    if not offset:
-        redis_instance = get_redis()
-        redis_instance.lpush('search_log', json.dumps({'query': query, 'time': datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')}))
-        redis_instance.ltrim('search_log', 0, 9)
+    #if not offset:  # saving searching history
+    #    {'query': query, 'time': datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')}
 
     file_name = query if search_by in ('title', 'all') else None
     file_content = query if search_by in ('content', 'all') else None

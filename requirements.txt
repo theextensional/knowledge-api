@@ -6,4 +6,3 @@ requests
 typesense
 djangorestframework
 django-environ
-redis

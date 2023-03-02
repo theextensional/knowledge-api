@@ -12,15 +12,11 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from note.models import Note
-from utils.redis import get_redis
 from pages.serializers import ProfileViewSerializer
 
 
-class ServiceServerView(APIView):
+class ServiceServerView(LoginRequiredMixin, APIView):
     def get(self, request):
-        if request.GET.get('pass') != 'shyzik93':
-            return ''
-
         context = {
             'count_notes': Note.objects.count()
         }
@@ -35,10 +31,6 @@ class ServiceServerView(APIView):
             sys.stdout = file_stdout
             management.call_command('note_load', stdout=file_stdout, stderr=file_stdout)
             message = file_stdout.getvalue()
-        elif command == 'get_search_log':
-            redis_instance = get_redis()
-            logs = redis_instance.lrange('search_log', 0, -1)
-            message = [json.loads(log) for log in logs]
         elif command == 'deploy_server':
             message = check_output('cd .. ; git pull origin main', shell=True)
         elif command == 'restart_server':

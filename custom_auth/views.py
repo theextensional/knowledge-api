@@ -104,7 +104,7 @@ class ExternAuthGoogleView(APIView):
         ext_user_set = ExternGoogleUser.objects.filter(extern_id=user_hashed_id)
         if not ext_user_set.count():
             # Регистрируем пользователя
-            user = User(username=temp_username, email=user_info['email'])
+            user = User(username=temp_username, email=user_info['email'], first_name=user_info['given_name'], last_name=user_info['family_name'])
             user.save()
             ext_user = ExternGoogleUser(user=user, extern_id=user_hashed_id, is_username_changed=False)
             ext_user.save()
