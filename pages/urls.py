@@ -8,6 +8,7 @@ from pages.views import (
     ProfileView,
 )
 
+
 urlpatterns = [
     path('map_info_resources', MapInfoResourcesView.as_view(), name='map_info_resources'),
     path('map_material_resources', MapMaterialResourcesView.as_view(), name='map_material_resources'),
