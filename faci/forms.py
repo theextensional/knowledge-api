@@ -18,9 +18,6 @@ class FaciCanvasAimForm(ModelForm):
             'if_not_reached',
             'aim_type',
         ]
-
-
-    # fields['aim'].widget.update(class_name='form-control')
     
     
 class FaciCanvasMembersForm(ModelForm):
