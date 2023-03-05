@@ -44,9 +44,6 @@ def note_search(request, query):
     if not (offset >= 0):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `offset` parameter'})
 
-    #if not offset:  # saving searching history
-    #    {'query': query, 'time': datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')}
-
     file_name = query if search_by in ('title', 'all') else None
     file_content = query if search_by in ('content', 'all') else None
     fields = ('title', 'content') if fields == 'all' else (fields,)
@@ -134,12 +131,9 @@ def note_hook(request):
         return Response(status=status.HTTP_200_OK, data=data)
 
 
-class NoteEditorView(APIView):  # TODO удалить
+class NoteEditorView(APIView):
     def get(self, request):
-        #COUNT_ON_PAGE = 20
-        #page_num = request.GET.get('page', 1)
-        notes = []#Note.objects.values('id', 'title')[(page_num-1)*COUNT_ON_PAGE:COUNT_ON_PAGE]
-        #max_page = Note.objects.count() // COUNT_ON_PAGE
+        notes = []
         context = {'notes': notes}
         return render(request, 'pages/note_editor.html', context)
 

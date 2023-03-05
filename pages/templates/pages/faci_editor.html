@@ -461,7 +461,6 @@
 </table>`,
             data() {
                 return {
-                    //member_list: [{'id': '1', 'invited': 'user1', 'inviting': 'test uswr', 'for_what': 'специалист по квантовым процессам', 'edit': false}],
                     member_list: JSON.parse(document.getElementById('members_json').textContent),
                 }
             },
@@ -469,7 +468,6 @@
                 add_member(event) {
                     this.member_list.push({'id': '', 'invited': '', 'inviting': '{{ request.user.username }}', 'for_what': 'цель приглашения?', 'edit': true});
                     setTimeout(function() {
-                        //click_on_last('.app_name');
                     }, 20);
                 },
             },

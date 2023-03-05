@@ -45,13 +45,7 @@ class ServiceServerView(LoginRequiredMixin, APIView):
 
 class MapInfoResourcesView(APIView):
     def get(self, request):
-        filepath = 'роэ_карта_обмена_информационными_ресурсами.md'
-        #with open(filepath, 'r', encoding='utf-8') as file:
-        #    filecontent = file.read().encode('utf-8')
-
-        #_, mermaid_content = filecontent.split('```mermaid\n', 1)
         context = {
-            #'mermaid_content': mermaid_content.split('\n```')[0],
         }
         return render(request, 'pages/map_info_resources.html', context)
 
