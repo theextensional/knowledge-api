@@ -155,9 +155,6 @@ class ExternRegistrationView(APIView):
 
 class TokenView(LoginRequiredMixin, View):
     def get(self, request):
-        #if not request.user.is_authenticated:
-        #    return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         tokens = Token.objects.filter(user=request.user).values('id', 'app_name')
         context = {'tokens': list(tokens)}
         return render(request, 'pages/tokens.html', context=context)
