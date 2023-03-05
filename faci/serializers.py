@@ -15,7 +15,6 @@ class GetListFaciSerializer(serializers.Serializer):
 
 
 class FaciEditMembersSerializer(serializers.Serializer):
-    #invited = serializers.CharField(max_length=100)
     for_what = serializers.CharField(max_length=100)
 
 
