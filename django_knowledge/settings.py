@@ -15,6 +15,8 @@ DEBUG = env('DEBUG')
 ROOT_URLCONF = 'django_knowledge.urls'
 WSGI_APPLICATION = 'django_knowledge.wsgi.application'
 STATIC_URL = '/static/'
+SITE_URL = env('SITE_URL')
+API_TOKEN_SALT = env('API_TOKEN_SALT')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -24,9 +26,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_knowledge',
+    'custom_auth',
     'rest_framework',
     'note',
     'pages',
+    'faci',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +54,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'custom_auth.context_processors.extern_auth_services',
             ],
         },
     },
@@ -83,10 +88,6 @@ LOGGING = {
     },
 }
 
-REDIS_HOST = env('REDIS_HOST')
-REDIS_PORT = env('REDIS_PORT')
-REDIS_PASSWORD = env('REDIS_PASSWORD')
-
 # KNOWLEDGE
 
 GITHUB_OWNER = env('GITHUB_OWNER')
@@ -103,3 +104,13 @@ TYPESENSE_API_KEY = env('TYPESENSE_API_KEY')
 
 DEFAULT_DOWNLOADER = env('DEFAULT_DOWNLOADER')
 DEFAULT_UPLOADER = env('DEFAULT_UPLOADER')
+
+
+# External auth
+
+EXTERN_AUTH = {
+    'google': {
+        'client_id': env('EXTERN_AUTH_GOOGLE_CLIENT_ID'),
+        'client_secret': env('EXTERN_AUTH_GOOGLE_CLIENT_SECRET'),
+    }
+}

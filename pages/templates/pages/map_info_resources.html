@@ -1,0 +1,107 @@
+{% extends 'template.html' %}
+{% load static %}
+
+{% block title %}Карта информационных ресурсов{% endblock %}
+{% block page_title %}Карта информационных ресурсов{% endblock %}
+
+{% block content %}
+<script src="{% static 'pages/extern/mermaid.min.js' %}"></script> 
+<script>
+    mermaid.initialize({ startOnLoad: true });
+</script>
+
+<div>{{ mermaid_content }}</div>
+
+<p>Пояснения к карте:</p>
+
+<ul>
+    <li>База нутриентов необходима для расчёта потреблённых элемнтов и составления рациона питания.</li>
+</ul>
+
+<div class="mermaid">
+flowchart TD
+
+    subgraph StorageScannerTools[Скрипты для сканирования\nхранилищ книг и заметок]
+        direction LR
+        notes_scanner_tool[Сканер заметок]
+        click notes_scanner_tool "https://github.com/syeysk/library_storage/tree/main/notes_storage_scanner" _blank
+        library_scanner_tool[Сканер книг]
+        click library_scanner_tool "https://github.com/syeysk/library_storage/tree/main/library_storage_scanner" _blank
+    end
+
+    subgraph PersonalArea[Личное Константина]
+        direction LR
+        library_storage[(D://Книги)]
+        notes_storage[(D://Заметки)]
+        password_storage[(D://Пароли.kdbx)]
+        syeysk_website[syeysk.ru\nсайт-портфолио]
+        click syeysk_website "https://syeysk.ru" _blank
+    end
+
+    subgraph TVPSupport[Неофициальное сообщество TVP-Support]
+        direction LR
+        tvp_knowledges_storage[(База знаний Knowledge)]
+        click tvp_knowledges_storage "https://github.com/TVP-Support/knowledge" _blank
+        tvp_discord_platform{Discord-сервер}
+        click tvp_discord_platform "https://discord.gg/sYEGrjz6Fp" _blank
+        tvp_knowledge_server[Сервер базы знаний \nvenusexperiment.ru]
+        click tvp_knowledge_server "https://github.com/TVP-Support/knowledge-api" _blank
+        tvp_knowledges_discord_bot[Бот для Дискорд]
+        click tvp_knowledges_discord_bot "https://github.com/TVP-Support/TVP-discord-bot" _blank
+        tvp_knowledges_telegram_bot[Бот для Телеграм]
+        click tvp_knowledges_telegram_bot "https://github.com/venusexperiment/TVP-telegram-bot" _blank
+        tvp_youtube_channel[Youtube-канал ""Экстенсиональный""]
+        click tvp_youtube_channel "https://www.youtube.com/c/%D0%AD%D0%BA%D1%81%D1%82%D0%B5%D0%BD%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9" _blank
+        tvp_trello_board[Trello-доска с задачами]
+        click tvp_trello_board "https://trello.com/b/0uoBNkMF/%D0%BF%D1%80%D0%B8%D1%88%D0%B5%D0%BB-%D1%83%D0%B2%D0%B8%D0%B4%D0%B5%D0%BB-%D1%81%D0%B4%D0%B5%D0%BB%D0%B0%D0%BB" _blank
+        tvp_boosty_board[Краудфандинг Boosty]
+        click tvp_boosty_board "https://boosty.to/theextensional" _blank
+    end
+
+    subgraph TVPSupportActivista[Приложение Activista]
+        direction TB
+        notes_activista_app[Функционал заметок]
+        click notes_activista_app "https://github.com/TVP-Support/activista" _blank
+        project_activista_app[Функционал проектов]
+        click project_activista_app "https://github.com/TVP-Support/activista" _blank
+    end
+
+    subgraph MyobiusSettlement[Планируемое ТЭП Мёбиус]
+        direction LR
+        telegram_myobius_platform{Телеграм-группа}
+        vk_myobius_platform{Группа ВКонтакте}
+        click vk_myobius_platform "https://vk.com/anewwayoflife" _blank
+        books_myobius_storage[(Облако с книгами)]
+        excel_myobius_task[Задачи и проекты]
+        click excel_myobius_task "https://docs.google.com/spreadsheets/d/17uuYznnD7akzLv8yyHJSEMQzwvvo78hl_NZtM1YYmrE/" _blank
+    end
+
+    subgraph Arseniy[Сообщество Арсения Юшина]
+        direction LR
+        telegram_arseniy_platform{Телеграм-группа}
+    end
+
+    obsidian_tool[Obsidian\nРедактор заметок]
+    click obsidian_tool "https://obsidian.md"
+
+    food_components_storage[(База нутриентов\nИх содержания в продуктах)]
+    click food_components_storage "https://fdc.nal.usda.gov/download-datasets.html" _blank
+   genome_storage[(База геномов вирусов)]
+    click genome_storage "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/" _blank
+
+    password_storage --> notes_scanner_tool
+    notes_storage <--> notes_scanner_tool
+    library_storage --> library_scanner_tool
+    notes_scanner_tool -->|публикация заметки| syeysk_website
+    library_scanner_tool -->|генерация списка книг| notes_storage
+
+    tvp_knowledges_storage -->|импорт заметок| tvp_knowledge_server
+    tvp_knowledges_discord_bot -->|отдача результата поиска заметки| tvp_discord_platform
+    tvp_knowledges_discord_bot <-->|команды сервера| tvp_discord_platform
+    tvp_knowledge_server -->|отдача результата поиска заметки| tvp_knowledges_telegram_bot & tvp_knowledges_discord_bot
+
+    notes_scanner_tool -.->|публикация заметки| tvp_knowledges_storage
+    notes_activista_app -.->|публикация заметки| tvp_knowledges_storage
+    obsidian_tool -.->|публикация заметки| tvp_knowledges_storage
+</div>
+{% endblock %}

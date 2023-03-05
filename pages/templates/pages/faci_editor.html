@@ -1,0 +1,609 @@
+{% extends 'template.html' %}
+
+{% block title %}
+    {% if form_aim.instance.id %} <a style="text-decoration: none;" href="{% url 'faci_list' %}">🡄</a> Редактирование встречи {% else %} Новая встреча {% endif %}
+{% endblock %}
+{% block page_title %} Встреча (холст фасилитации) {% endblock %}
+
+{% block content %}
+    {{ members|json_script:'members_json' }}
+    {{ agendas|json_script:'agendas_json' }}
+    <style>
+        .card-body {
+            position: relative;
+        }
+        .form_sheet {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #eeeeee;
+            opacity: 90%;
+            width: 100%;
+            height: 100%;
+            padding: 7px;
+            text-align: center;
+        }
+        .form_sheet span {
+            vertical-align: middle;
+        }
+        
+        /* ListDown */
+        .form_listdown {
+            position: relative;
+        }
+        .button_ss {cursor: pointer;}
+        .suggestions {
+            position:absolute;
+            width: calc(110% + 15px);
+            background: #faf143; text-align: left;
+            font-size: 10pt;
+            color: #0e283c;
+            z-index: 100;
+        }
+        .suggestions div {padding: 4px 5px 4px 5px; border-bottom: 1px solid #dfa4a4; cursor: pointer;}
+        .suggestions div:hover {background:#ffe4e4;}
+    </style>
+
+    <div class="row accordion">
+        <div class="col-sm-6">
+            <div class="card accordion-item">
+                <div class="accordion-header accordion-button card-header" data-bs-toggle="collapse" data-bs-target="#aim_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    1. Цель
+                </div>
+                <form id="aim_form" class="card-body accordion-collapse collapse show">
+                    <div class="mb-3">
+                        <label for="{{ form_aim.aim_type.id_for_label }}" class="form-label">{{ form_aim.aim_type.label }}</label>
+                        {{ form_aim.aim_type }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form_aim.aim.id_for_label }}" class="form-label">{{ form_aim.aim.label }}</label>
+                        {{ form_aim.aim }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form_aim.if_not_reached.id_for_label }}" class="form-label">{{ form_aim.if_not_reached.label }}</label>
+                        {{ form_aim.if_not_reached }}
+                    </div>
+
+                    <input type="button" value="Сохранить{% if step == 1 %} и перейти к заполнению участников{% endif %}" class="form-control">
+                </form>
+            </div>
+
+            <br>
+
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#members_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    2. Участники
+                </div>
+                <form id="members_form" class="card-body accordion-collapse collapse show">
+                    <div id="app"></div>
+                    <input type="button" value="Добавить" id="add_member_button" class="form-control">              
+                    <div class="{% if step > 1 %}d-none {% endif %}form_sheet">Для открытия выполните 1-й шаг</div>
+                </form>
+            </div>
+        </div>
+
+        <br/>
+
+        <div class="col-sm-6">
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#agenda_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    3. Повестка
+                </div>
+                <form id="agenda_form" class="card-body accordion-collapse collapse show">
+                    <div id="app_agenda"></div>
+                    <div class="{% if step > 2 %}d-none {% endif %}form_sheet"><span>Для открытия заполните, пожалуйста, список участников (2-й шаг)</span></div>
+                </form>
+            </div>
+
+            <br/>
+            
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#preparing_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    4. Подготовка
+                </div>
+                <form id="preparing_form" class="card-body accordion-collapse collapse show">
+                    <div class="mb-3 row">
+                        <label for="{{ form_preparing.dt_meeting.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.dt_meeting.label }}</label>
+                        <div class="col-sm-6">
+                            {{ form_preparing.dt_meeting }}
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="{{ form_preparing.duration.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.duration.label }}</label>
+                        <div class="col-sm-6">
+                            {{ form_preparing.duration }}
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="{{ form_preparing.place.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.place.label }}</label>
+                        <div class="col-sm-6">
+                            {{ form_preparing.place }}
+                        </div>
+                    </div>
+                    <input type="button" value="{% if form_preparing.instance.meeting_status == form_preparing.instance.MEETING_STATUS_STARTED %}Завершить встречу{% else %}Начать встречу{% endif %}" class="form-control" id="button_start_meeting">
+                    <div class="{% if step > 3 %}d-none {% endif %}form_sheet"><span>Откроется после выполнения 3-го шага</span></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <br/>
+
+    <div class="row accordion">
+        <div class="col-sm-6">
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#key_thoughts_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    5. Ключевые мысли
+                </div>
+                <form id="key_thoughts_form" class="card-body accordion-collapse collapse show">
+                    <div class="mb-3">
+                        <label for="{{ form_key_thoughts.key_thoughts.id_for_label }}" class="form-label">{{ form_key_thoughts.key_thoughts.label }}</label>
+                        {{ form_key_thoughts.key_thoughts }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form_key_thoughts.parked_thoughts.id_for_label }}" class="form-label">{{ form_key_thoughts.parked_thoughts.label }}</label>
+                        {{ form_key_thoughts.parked_thoughts }}
+                    </div>
+                    <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="card accordion-item">
+                <div class="accordion-header card-header accordion-button" data-bs-toggle="collapse" data-bs-target="#agreements_form" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                    6. Договорённости
+                </div>
+                <form id="agreements_form" class="card-body accordion-collapse collapse show">
+                    <div class="mb-3">
+                        <label for="{{ form_agreements.other_agreements.id_for_label }}" class="form-label">{{ form_agreements.other_agreements.label }}</label>
+                        {{ form_agreements.other_agreements }}
+                    </div>
+                    <div class="{% if step > 4 %}d-none {% endif %}form_sheet">Станет доступно во время встречи (после шага 4)</div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const AgendaItem = {
+            props: ['invited', 'themes', 'themes_duration', 'questions'],
+            emits: [],
+            template: `
+<div style="background-color: var(--bs-card-border-color); padding: 5px; border-radius: 3px; display: flex; justify-content: space-between;">
+    <span>[[ themes_duration ]] мин</span>
+    <span>[[ invited ]]</span>
+</div>
+
+<br>
+
+<div v-if="themes">
+    <div style="font-style: italic;">Темы:</div>
+    <p style="padding-left: 15px;">[[ themes ]]</p>
+</div>
+
+
+<div v-if="questions">
+    <div style="font-style: italic;">Мнения/вопросы:</div>
+    <p style="padding-left: 15px;">[[ questions ]]</p>
+</div>
+`,
+        };
+
+        const AgendaSelfItem = {
+            props: ['invited', 'themes', 'themes_duration', 'questions'],
+            emits: ['blur'],
+            data() {
+                return {m_themes: this.themes, m_themes_duration: this.themes_duration, m_questions: this.questions};
+            },
+            template: `
+<div style="background-color: var(--bs-card-border-color); padding: 5px; border-radius: 3px; display: flex; justify-content: space-between;">
+    <span><input name="themes_duration" v-model="m_themes_duration" @blur="blur" min="1" max="120" type="number" style="width: 45pt; padding: 0 0 0 3px; display: initial;" class="form-control"/> мин</span>
+    <span>[[ invited ]]</span>
+</div>
+
+<br>
+
+<div style="font-style: italic;">Темы:</div>
+<textarea v-model="m_themes" name="themes" @blur="blur" style="width: 100%;" rows="5" class="form-control"></textarea>
+
+<br>
+
+<div style="font-style: italic;">Мнения/вопросы:</div>
+<textarea v-model="m_questions" name="questions" @blur="blur" style="width: 100%;" rows="5" class="form-control"></textarea>
+
+<br>
+`,
+            methods: {
+                blur(event) {
+                    this.$emit('blur', this);
+                },
+            },
+        };
+
+        var app_agenda = createApp({
+            props: [],
+            data() {
+                return {agendas: JSON.parse(document.getElementById('agendas_json').textContent)} 
+            },
+            template: `
+<template v-for="agenda in agendas">
+    <agenda-self-item
+        v-if="agenda.self"
+        :invited="agenda.invited"
+        :themes="agenda.themes"
+        :themes_duration="agenda.themes_duration"
+        :questions="agenda.questions"
+        @blur="save_agenda"
+    ></agenda-self-item>
+    <div
+        v-else
+    >
+        <agenda-item
+            v-if="agenda.themes || agenda.questions"
+            :invited="agenda.invited"
+            :themes="agenda.themes"
+            :themes_duration="agenda.themes_duration"
+            :questions="agenda.questions"
+        ></agenda-item>
+    </div>
+</template>
+            `,
+            methods: {
+                save_agenda(component) {
+                    $.ajax({
+                        url: 'agenda/',
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: {themes: component.m_themes, themes_duration: component.m_themes_duration, questions: component.m_questions},
+                        success: function(result) {
+                            console.log(result);
+                            open_block(result['open_block']);
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                        },
+                        method: "post"
+                    });
+                },
+            },
+            components: {AgendaItem, AgendaSelfItem},
+        });
+        
+        app_agenda.config.compilerOptions.delimiters = [ '[[', ']]' ];
+        var agenda_list = app_agenda.mount('#app_agenda');
+    </script>
+
+    <script>
+        const ListdownFieldItem = {
+            props: ["key", "id", "value"],
+            emits: ['change'],
+            template: `<div v-on:click="$emit('change', id, value)">[[ value ]]</div>`,
+        }
+    
+        const ListdownField = {
+            props: ["id", "value", "name", "edit"],
+            emits: ['search-item', 'change', 'blur', 'focus', 'update:value', 'update:id'],
+            template: `
+<div class="component_listdown">
+    <span class="button_ss" @click="focus" :class="{'d-none': is_edit}">[[ mvalue ]]</span>
+    <div class="form_listdown" :class="{'d-none': !is_edit}">
+        <input type='text' v-model.trim="query" @keyup="search_item" @blur="blur" class="field_listdown">
+        <div class="suggestions">
+            <listdown-field-item
+                @change="select_item"
+                v-for="item in item_list"
+                :value="item.value"
+                :key="item.id"
+                :id="item.id"
+            ></listdown-field-item>
+        </div>
+        <input type="hidden" v-bind:name="name" v-model.trim="mid">
+    </div>
+</div>
+`,
+            data() {
+                return {
+                    mvalue: this.value,
+                    query: '',
+                    mid: this.id,
+                    is_edit: this.edit,
+                    item_list: [],
+                }
+            },
+            methods: {
+                focus(event) {
+                    this.is_edit = true;
+                    let self = this;
+                    setTimeout(function() {
+                        if (!self.query) self.query = self.mvalue;
+                        self.$el.querySelector('.field_listdown').focus();
+                        self.$emit('focus', self);
+                    }, 20);
+                },
+                blur(event) {
+                    let self = this;
+                    setTimeout( // чтобы сначала отработало событие click на выбранном элементе
+                        function() {
+                            self.is_edit = false;
+                            self.$emit('blur', self);
+                        },
+                        100,
+                    );
+                },
+                search_item(event) {
+                    this.item_list = [];
+                    this.$emit('search-item', this);
+                },
+                select_item(item_id, item_value) {
+                    this.mid = item_id;
+                    this.mvalue = item_value;
+                    this.$emit('update:id', item_id);
+                    this.$emit('update:value', item_value);
+                    if (this.$emit('change', item_id, item_value)) {
+                        this.is_edit = false;
+                        this.query = '';
+                    }
+                },
+            },
+            components: {
+                ListdownFieldItem
+            },
+        }
+
+        const MemberItem = {
+            props: ["member"],
+            template: `
+<tr>
+    <td>
+        <listdown-field
+              @search-item="search_user"
+              @change="select_user"
+              @blur="blur_selecting_user"
+              v-model:value="member.invited"
+              :edit="member.edit"
+              name="invited"
+        ></listdown-field>
+    </td>
+    <td>
+        <toggle-field
+           @blur="blur_input_for_what"
+          :value="member.for_what"
+          :id="member.id"
+          name="for_what"
+        ></toggle-field>
+    </td>
+    <!--<td>[[ member.inviting ]]</td>-->
+</tr>`,
+            components: {
+                ListdownField, ToggleField
+            },
+            methods: {
+                save_member() {
+                    let self = this;
+                    $.ajax({
+                        url: 'member/' + this.member.invited + '/',
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: {for_what: this.member.for_what},
+                        success: function(result) {
+                            console.log(result);
+                            open_block(result['open_block']);
+                            agenda_list.agendas.push({invited: self.member.invited, themes: '', themes_duration: 5, questions: '', self: self.member.invited == '{{request.user.username}}' });
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                            console.log(jqxhr.responseText);
+                        },
+                        method: "post"
+                    });
+                },
+                search_user(component) {
+                    $.ajax({
+                        url: "{% url 'search_user' %}",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: {search_string: component.query},
+                        success: function(result) {
+                            let username;
+                            for (username of result) {
+                                component.item_list.push({'id': username, 'value': username});
+                            }
+                            if (component.item_list.length == 0) {
+                                component.item_list.push({'id': null, 'value': 'пользователь не найден'});
+                            }
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                            console.log(jqxhr.responseText);
+                        },
+                        method: "post"
+                    });
+                },
+
+                select_user(id, value) {
+                    console.log(value);
+                    this.save_member();
+                    return true;
+                },
+                blur_selecting_user(component) {
+                    console.log(component);
+                    console.log(this.member);
+                },
+                blur_input_for_what(component) {
+                    console.log(this.member);
+                    this.save_member();
+                },
+
+            },
+        }
+
+        var app = createApp({
+            template: `
+<table style="width: 100%;">
+    <tr style="text-align: center;">
+        <th>Участник</th>
+        <th>В каком вопросе компетентен</th>
+        <!--<th>Кто пригласил</th>-->
+    </tr>
+    <member-item
+        v-for="member in member_list"
+        :member="member"
+    ></member-item>
+</table>`,
+            data() {
+                return {
+                    member_list: JSON.parse(document.getElementById('members_json').textContent),
+                }
+            },
+            methods: {
+                add_member(event) {
+                    this.member_list.push({'id': '', 'invited': '', 'inviting': '{{ request.user.username }}', 'for_what': 'цель приглашения?', 'edit': true});
+                    setTimeout(function() {
+                    }, 20);
+                },
+            },
+            components: {
+                MemberItem
+            },
+            compilerOptions: {
+                delimiters: ["[[", "]]"],
+            },
+        });
+        app.config.compilerOptions.delimiters = [ '[[', ']]' ];
+        var member_list = app.mount('#app');
+
+        $("#add_member_button").click(member_list.add_member);
+    </script>
+
+    <script>
+        function open_block(block_name) {
+            if (block_name) {
+                $('#'+block_name+'_form .form_sheet')[0].classList.add('d-none');
+            }
+        }
+    
+        function save_form_aim(event) {
+            $.ajax({
+                url: "aim/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: $(event.target.form).serialize(),
+                success: function(result) {
+                    if (result['id']) {
+                        try {
+                            history.pushState(null, null, location.href.replace('/new', '/'+result['id']));
+                            open_block(result['open_block']);
+                        } catch(e) {}
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
+        function save_form_preparing(event) {
+            $.ajax({
+                url: "preparing/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: $(event.target.form).serialize(),
+                success: function(result) {
+                    if (result['id']) {
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    alert(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
+        function start_meeting(event) {
+            $.ajax({
+                url: "start_meeting/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: {},
+                success: function(result) {
+                    if (result['meeting_status'] == {{ form_preparing.instance.MEETING_STATUS_STARTED }}) {
+                        open_block('key_thoughts');
+                        open_block('agreements');
+                        event.target.value = 'Завершить встречу';
+                    } else if (result['meeting_status'] == {{ form_preparing.instance.MEETING_STATUS_FINISHED }}) {
+                        event.target.value = 'Начать встречу';
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
+        function save_key_thoughts(event) {
+            $.ajax({
+                url: "key_thoughts/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: $(event.target.form).serialize(),
+                success: function(result) {
+                    if (result['id']) {
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
+        function save_agreements(event) {
+            $.ajax({
+                url: "agreements/",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                dataType: 'json',
+                data: $(event.target.form).serialize(),
+                success: function(result) {
+                    if (result['id']) {
+                    }
+                },
+                error: function(jqxhr, a, b) {
+                    console.log('error');
+                    console.log(jqxhr.responseText);
+                },
+                method: "post"
+            });
+        }
+
+        $('#aim_form').change(save_form_aim);
+        $('#preparing_form').change(save_form_preparing);
+        $('#button_start_meeting').click(start_meeting);
+        $('#key_thoughts_form').change(save_key_thoughts);
+        $('#agreements_form').change(save_agreements);
+    </script>
+{% endblock %}

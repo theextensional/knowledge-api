@@ -1,0 +1,182 @@
+{% extends 'template.html' %}
+
+{% block title %}Токены для API{% endblock %}
+{% block page_title %}Токены для API{% endblock %}
+
+{% block content %}
+   <style>
+       .token_placeholder {
+           text-align: center;
+           font-size: 16px;
+           font-weight 400;
+       }
+       .token_placeholder span {
+           padding: 5px 10px;
+           background: #d8d8d8;
+       }
+       
+       .app_name {
+           width: 80%;
+           display: inline-block;
+           border-bottom: 1px solid #d8d8d8;
+           padding: 3px 0px;
+       }
+       input[name=app_name] {
+           width: 80%;
+       }
+       .delete_button {
+           padding: 2px 10px;
+           margin: 5px 10px;
+       }
+
+   </style>
+
+    <div id="window_token_is_ready" class="windowBody">
+        <p>Скопируйте его и вставьте в своё приложение - после закрытия окна сделать это будет невозможно:</p>
+        <p class="token_placeholder"> <span></span> </p>
+    </div>
+
+    {{ tokens|json_script:'tokens_json' }}
+
+    <p style="text-align: right;">
+        <input type="button" value="Добавить токен" id="add_token_button" class="form-control" style="width: auto; display: inline;">
+    </p>
+
+    <p>Для изменения значения, нажмите на соответствующую ячейку.</p>
+    
+    <div id="app">
+        <form class="item">
+            <span class="app_name" style="font-weight: 600; cursor:text;">Наименование приложения</span>
+        </form>
+        <token-item
+            v-for="token in token_list"
+            :token="token"
+            :key="token.id"
+        ></token-item>
+    </div>
+    
+    <script>
+    function click_on_last(selector) {
+        let token_items = $('#app')[0].children;
+        token_items[token_items.length-1].querySelector(selector).click();
+    }
+    
+    
+    const TokenItem = {
+        props: ["key", "token"],
+        template: `
+<form class="item" @submit.prevent @keyup.enter.prevent>
+    <input name="token_id" v-bind:value="token.id" type="hidden"/>
+
+    <toggle-field
+    @blur="blur_app_name"
+    :value="token.app_name"
+    :id="token.id"
+    name="app_name"
+    class="app_name"
+    ></toggle-field>
+
+    <input @click="delete_token" type="button" value="x" class="form-control delete_button" style="width: auto; display: inline;"/>
+</form>`,
+        methods: {
+            delete_token(event) {
+                if (this.token.id) {
+                    $.ajax({
+                        url: "{% url 'custom_auth_delete_token' '0' %}" + this.token.id,
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: $(event.target.form).serialize(),
+                        success: function(result) {
+                            event.target.form.remove();
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                            console.log(jqxhr.responseText);
+                        },
+                        method: "post"
+                    });
+                } else {
+                    this.$el.remove();
+                }
+            },
+            blur_app_name(component, is_exist, is_filled) {
+                _this = this;
+                if (is_exist) {
+                    $.ajax({
+                        url: "{% url 'custom_auth_edit_token' %}",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        dataType: 'json',
+                        data: $(_this.$el).serialize(),
+                        success: function(result) {
+                        },
+                        error: function(jqxhr, a, b) {
+                            console.log('error');
+                            console.log(jqxhr.responseText);
+                        },
+                        method: "post"
+                    });
+                } else {
+                    if (is_filled) {
+                        $.ajax({
+                            url: "{% url 'custom_auth_add_token' %}",
+                            headers: {
+                                "X-CSRFToken": "{{ csrf_token }}",
+                            },
+                            dataType: 'json',
+                            data: $(_this.$el).serialize(),
+                            success: function(result) {
+                                _this.token.app_name = component.mvalue;
+                                _this.token.id = result.id;
+                                let w = W.open('window_token_is_ready', {text_title: "Токен успешно сгенерирован :)"});
+                                W.get_wbody(w).querySelector('.token_placeholder span').textContent = result.token;
+                            },
+                            error: function(jqxhr, a, b) {
+                                console.log('error');
+                                console.log(jqxhr.responseText);
+                            },
+                            method: "post"
+                        });
+                    } else {
+                        this.delete_token(event);
+                    }
+                }
+            },
+        },
+        components: {
+            ToggleField,
+        }
+    }
+    
+    const { createApp } = Vue
+
+    var app = createApp({
+        data() {
+            return {
+                token_list: JSON.parse(document.getElementById('tokens_json').textContent),
+            }
+        },
+        methods: {
+            add_token(event) {
+                this.token_list.push({'id': '', 'app_name': '', 'token': ''});
+                setTimeout(function() {
+                    click_on_last('.app_name span');
+                }, 20);
+            },
+        },
+        components: {
+            TokenItem
+        },
+        compilerOptions: {
+            delimiters: ["[[", "]]"],
+        },
+    });
+    app.config.compilerOptions.delimiters = [ '[[', ']]' ];
+    var token_list = app.mount('#app');
+
+    $("#add_token_button").click(token_list.add_token);
+    </script>
+{% endblock %}

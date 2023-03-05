@@ -1,0 +1,41 @@
+{% extends 'template.html' %}
+
+{% block title %}Обслуживание сервера{% endblock %}
+
+{% block content %}
+    <div class="content">
+        <form action="" id="command_buttons">
+            <input type="button" value="Обновить базу" data-command="update_db">
+            <input type="button" value="Задеплоить свежий PR" data-command="deploy_server">
+            <input type="button" value="Перезапустить сервер" data-command="restart_server">
+        </form>
+
+        <div><pre id="result"></pre></div>
+    </div>
+
+    <h2>Статистика</h2>
+
+    <div class="content">
+        Заметок в базе: {{ count_notes }}
+    </div>
+
+    <script>
+        function run_command(event) {
+            $.ajax({
+                url: "{% url 'service_server' %}",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                data: {
+                    command: event.target.dataset.command
+                },
+                success: function( result ) {
+                    $( "#result" ).text(result.message);
+                },
+                method: "post"
+            });
+        }
+        $('#command_buttons').on("click", run_command);
+    </script>
+
+{% endblock %}

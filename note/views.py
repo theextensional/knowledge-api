@@ -5,15 +5,18 @@ from urllib.parse import unquote
 
 import requests
 from django.conf import settings
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from django.views import View
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
+from rest_framework.views import APIView
 from rest_framework import status
 
 from note.load_from_github import prepare_to_search, get_root_url, search
 from note.credentials import args_uploader
 from note.models import Note
-from utils.redis import get_redis
 
 
 @api_view(('GET',))
@@ -40,11 +43,6 @@ def note_search(request, query):
     offset = int(request.GET.get('offset', '0'))
     if not (offset >= 0):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'Invalid `offset` parameter'})
-
-    if not offset:
-        redis_instance = get_redis()
-        redis_instance.lpush('search_log', json.dumps({'query': query, 'time': datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')}))
-        redis_instance.ltrim('search_log', 0, 9)
 
     file_name = query if search_by in ('title', 'all') else None
     file_content = query if search_by in ('content', 'all') else None
@@ -131,3 +129,22 @@ def note_hook(request):
                     note.save()
 
         return Response(status=status.HTTP_200_OK, data=data)
+
+
+class NoteEditorView(APIView):
+    def get(self, request):
+        notes = []
+        context = {'notes': notes}
+        return render(request, 'pages/note_editor.html', context)
+
+
+class NoteListView(View):
+
+    def get(self, request):
+        page_number = int(request.GET.get('p', '1'))
+
+        notes = Note.objects.all()
+        paginator = Paginator(notes, 20)
+        page = paginator.page(page_number)
+        context = {'notes': page.object_list}
+        return render(request, 'pages/note_list.html', context)

@@ -1,0 +1,20 @@
+{% extends 'template.html' %}
+
+{% block title %}Заметки{% endblock %}
+
+{% block page_title %}Заметки{% endblock %}
+
+{% block content %}
+    <p>
+        Совокупность заметок является базой знаний. Поиск по базе доступен через телеграм-бот и дискорд-сервер. 
+    </p>
+
+    {% if request.user.is_authenticated %}
+        {% for note in notes %}
+            <h3>{{ note.title }}</h3>
+            <p>{{ note.content|slice:":1000" }}</p>
+        {% endfor %}
+    {% else %}
+        Приложение временно доступно авторизованным пользователям
+    {% endif %}
+{% endblock %}
