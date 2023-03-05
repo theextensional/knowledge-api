@@ -277,5 +277,4 @@ class SearchUserView(LoginRequiredMixin, APIView):
     def post(self, request):
         search_string = request.POST['search_string']
         usernames = User.objects.filter(username__contains=search_string).values_list('username', flat=True)[:10]
-        #search_result = [{'id': username, 'value': username} for username in usernames]
         return Response(status=status.HTTP_200_OK, data=usernames)
