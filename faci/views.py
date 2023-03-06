@@ -91,16 +91,19 @@ class FaciEditAimView(APIView):
             faci_form.instance.step = 2
 
         data_for_return = {}
-        if faci_form.is_valid():
-            faci_form.save()
-            data_for_return['id'] = faci_form.instance.pk
-            if not canvas_id:
-                member = Member(invited=request.user, inviting=request.user, what_for='Инициатор встречи', faci_canvas=faci_form.instance)
-                member.save()
-        else:
-            data_for_return['errors'] = faci_form.errors
+        if faci_form.has_changed():
+            if faci_form.is_valid():
+                data_for_return['updated'] = faci_form.changed_data
+                faci_form.save()
+                data_for_return['id'] = faci_form.instance.pk
+                if not canvas_id:
+                    member = Member(invited=request.user, inviting=request.user, what_for='Инициатор встречи', faci_canvas=faci_form.instance)
+                    member.save()
 
-        data_for_return['open_block'] = 'members'
+                data_for_return['open_block'] = 'members'
+                data_for_return['success'] = True
+            else:
+                data_for_return['errors'] = faci_form.errors
 
         return Response(status=status.HTTP_200_OK, data=data_for_return)
 
@@ -159,12 +162,24 @@ class FaciEditPreparingView(LoginRequiredMixin, APIView):
         data = serializer.validated_data
 
         faci = FaciCanvas.objects.get(pk=canvas_id)
-        faci.dt_meeting = data['dt_meeting']
-        faci.place = data['place']
-        faci.duration = data['duration']
-        faci.save()
+        updated = []
+        
+        if faci.dt_meeting != data['dt_meeting']:
+            faci.dt_meeting = data['dt_meeting']
+            updated.append('dt_meeting')
 
-        data_for_return = {}
+        if faci.place != data['place']:
+            faci.place = data['place']
+            updated.append('place')
+
+        if faci.duration != data['duration']:
+            faci.duration = data['duration']
+            updated.append('duration')
+
+        if updated:
+            faci.save()
+
+        data_for_return = {'updated': updated}
         data_for_return['success'] = True
         return Response(status=status.HTTP_200_OK, data=data_for_return)
 
