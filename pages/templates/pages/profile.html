@@ -6,77 +6,60 @@
 
 {% block content %}
     <form>
-        <div id="username-group" class="form-group">
+        <div id="username-group" class="mb-3 form-group">
             <div class="form-floating">
                 <input class="form-control" placeholder="имя пользователя" id="field_username" name="username" disabled value="{{ request.user.username }}">
                 <label for="field_username">Пользователь</label>
             </div>
         </div>
-        <br />
-        <div id="email-group" class="form-group">
+        <div id="email-group" class="mb-3 form-group">
             <div class="form-floating">
                 <input class="form-control" placeholder="e-mail" id="field_email" name="email" disabled value="{{ request.user.email }}">
                 <label for="field_email">E-mail</label>
             </div>
         </div>
-        <br />
-        <div id="first_name-group" class="form-group">
+        <div id="first_name-group" class="mb-3 form-group">
             <div class="form-floating">
                 <input class="form-control" placeholder="имя" id="field_first_name" name="first_name" value="{{ request.user.first_name }}">
                 <label for="field_first_name">Имя</label>
             </div>
         </div>
-        <br />
-        <div id="last_name-group" class="form-group">
+        <div id="last_name-group" class="mb-3 form-group">
             <div class="form-floating">
                 <input class="form-control" placeholder="фамилия" id="field_last_name" name="last_name" value="{{ request.user.last_name }}">
                 <label for="field_last_name">Фамилия</label>
             </div>
         </div>
-        <br />
         <input type="button" class="btn btn-primary" value="Сохранить" id="btn_save_profile">
     </form>
     
     <script>
-        function set_valid_field(form, field_names) {
-            for (let field_name of field_names) {
-                $(form).find('#'+field_name+'-group .help-block').remove();
-                $(form[field_name]).removeClass("is-invalid");
-                $(form[field_name]).addClass("is-valid");
-                setTimeout(
-                    function() {$(form[field_name]).removeClass("is-valid")},
-                    2000,
-                );
-            }
-        }
-
-        function set_invalid_field(form, errors) {
-            for (let field_name in errors) {
-                $(form[field_name]).addClass("is-invalid");
-                $(form).find('#'+field_name+'-group').append(
-                   '<div class="help-block">' + errors[field_name] + "</div>"
-                );
-            }
-        }
-        
         function save_profile(event) {
+            let form = event.target.form;
             $.ajax({
                 url: "{% url 'custom_profile' %}",
                 headers: {
                     "X-CSRFToken": "{{ csrf_token }}",
                 },
                 dataType: 'json',
-                data: $(event.target.form).serialize(),
+                data: $(form).serialize(),
                 success: function(result) {
                     if (result.success) {
-                        set_valid_field(event.target.form, result.updated);
+                        set_valid_field(form, result.updated);
                     } else {
-                        set_invalid_field(event.target.form, result.errors);
+                        set_invalid_field(form, result.errors);
                    }
                 },
                 error: function(jqxhr, a, b) {
-                    console.log('error');
                     console.log(jqxhr.responseText);
+                },
+                statusCode: {
+                    403: function(xhr) {
+                        alert(xhr.responseJSON.detail);
+                    },
+                    400: function(xhr) {
+                        set_invalid_field(form, xhr.responseJSON);
+                    },
                 },
                 method: "post"
             });

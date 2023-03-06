@@ -51,20 +51,26 @@
                     1. Цель
                 </div>
                 <form id="aim_form" class="card-body accordion-collapse collapse show">
-                    <div class="mb-3">
-                        <label for="{{ form_aim.aim_type.id_for_label }}" class="form-label">{{ form_aim.aim_type.label }}</label>
-                        {{ form_aim.aim_type }}
+                    <div class="mb-3 form-group" id="aim_type-group">
+                        <div class="form-floating">
+                            {{ form_aim.aim_type }}
+                            <label for="{{ form_aim.aim_type.id_for_label }}" class="form-label">{{ form_aim.aim_type.label }}</label>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form_aim.aim.id_for_label }}" class="form-label">{{ form_aim.aim.label }}</label>
-                        {{ form_aim.aim }}
+                    <div class="mb-3 form-group" id="aim-group">
+                        <div class="form-floating">
+                            {{ form_aim.aim }}
+                            <label for="{{ form_aim.aim.id_for_label }}" class="form-label">{{ form_aim.aim.label }}</label>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form_aim.if_not_reached.id_for_label }}" class="form-label">{{ form_aim.if_not_reached.label }}</label>
-                        {{ form_aim.if_not_reached }}
+                    <div class="mb-3 form-group" id="if_not_reached-group">
+                        <div class="form-floating">
+                            {{ form_aim.if_not_reached }}
+                            <label for="{{ form_aim.if_not_reached.id_for_label }}" class="form-label">{{ form_aim.if_not_reached.label }}</label>
+                        </div>
                     </div>
 
-                    <input type="button" value="Сохранить{% if step == 1 %} и перейти к заполнению участников{% endif %}" class="form-control">
+                    <input type="button" value="Сохранить{% if step == 1 %} и перейти к заполнению участников{% endif %}" class="btn btn-secondary" id="btn_save_aim">
                 </form>
             </div>
 
@@ -102,25 +108,26 @@
                     4. Подготовка
                 </div>
                 <form id="preparing_form" class="card-body accordion-collapse collapse show">
-                    <div class="mb-3 row">
+                    <div class="mb-3 row" id="dt_meeting-group">
                         <label for="{{ form_preparing.dt_meeting.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.dt_meeting.label }}</label>
                         <div class="col-sm-6">
                             {{ form_preparing.dt_meeting }}
                         </div>
                     </div>
-                    <div class="mb-3 row">
+                    <div class="mb-3 row" id="duration-group">
                         <label for="{{ form_preparing.duration.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.duration.label }}</label>
                         <div class="col-sm-6">
                             {{ form_preparing.duration }}
                         </div>
                     </div>
-                    <div class="mb-3 row">
+                    <div class="mb-3 row" id="place-group">
                         <label for="{{ form_preparing.place.id_for_label }}" class="col-sm-4 form-label">{{ form_preparing.place.label }}</label>
                         <div class="col-sm-6">
                             {{ form_preparing.place }}
                         </div>
                     </div>
-                    <input type="button" value="{% if form_preparing.instance.meeting_status == form_preparing.instance.MEETING_STATUS_STARTED %}Завершить встречу{% else %}Начать встречу{% endif %}" class="form-control" id="button_start_meeting">
+                    <input type="button" value="Сохранить" class="btn btn-secondary" id="btn_save_prepraring">
+                    <input type="button" value="{% if form_preparing.instance.meeting_status == form_preparing.instance.MEETING_STATUS_STARTED %}Завершить встречу{% else %}Начать встречу{% endif %}" class="btn btn-secondary" id="button_start_meeting">
                     <div class="{% if step > 3 %}d-none {% endif %}form_sheet"><span>Откроется после выполнения 3-го шага</span></div>
                 </form>
             </div>
@@ -500,6 +507,11 @@
                 dataType: 'json',
                 data: $(event.target.form).serialize(),
                 success: function(result) {
+                    if (result.success) {
+                        set_valid_field(event.target.form, result.updated);
+                    } else {
+                        set_invalid_field(event.target.form, result.errors);
+                    }
                     if (result['id']) {
                         try {
                             history.pushState(null, null, location.href.replace('/new', '/'+result['id']));
@@ -508,28 +520,45 @@
                     }
                 },
                 error: function(jqxhr, a, b) {
-                    console.log('error');
                     console.log(jqxhr.responseText);
+                },
+                statusCode: {
+                    403: function(xhr) {
+                        alert(xhr.responseJSON.detail);
+                    },
                 },
                 method: "post"
             });
         }
 
         function save_form_preparing(event) {
+            let form = event.target.form;
             $.ajax({
                 url: "preparing/",
                 headers: {
                     "X-CSRFToken": "{{ csrf_token }}",
                 },
                 dataType: 'json',
-                data: $(event.target.form).serialize(),
+                data: $(form).serialize(),
                 success: function(result) {
+                    if (result.success) {
+                        set_valid_field(form, result.updated);
+                    } else {
+                        set_invalid_field(form, result.errors);
+                    }
                     if (result['id']) {
                     }
                 },
                 error: function(jqxhr, a, b) {
-                    console.log('error');
-                    alert(jqxhr.responseText);
+                    console.log(jqxhr.responseText);
+                },
+                statusCode: {
+                    403: function(xhr) {
+                        alert(xhr.responseJSON.detail);
+                    },
+                    400: function(xhr) {
+                        set_invalid_field(form, xhr.responseJSON);
+                    },
                 },
                 method: "post"
             });
@@ -600,8 +629,8 @@
             });
         }
 
-        $('#aim_form').change(save_form_aim);
-        $('#preparing_form').change(save_form_preparing);
+        $('#btn_save_aim').click(save_form_aim);
+        $('#btn_save_prepraring').click(save_form_preparing);
         $('#button_start_meeting').click(start_meeting);
         $('#key_thoughts_form').change(save_key_thoughts);
         $('#agreements_form').change(save_agreements);

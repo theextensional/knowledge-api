@@ -69,10 +69,10 @@ class ProfileView(LoginRequiredMixin, APIView):
 
     def post(self, request):
         serializer = ProfileViewSerializer(data=request.POST)
-        serializer.is_valid(raise_exception=False)
-        if serializer.errors:
-            result_data = {'success': False, 'errors': serializer.errors}
-            return Response(status=status.HTTP_200_OK, data=result_data)
+        serializer.is_valid(raise_exception=True)
+        # if serializer.errors:
+        #     result_data = {'success': False, 'errors': serializer.errors}
+        #     return Response(status=status.HTTP_200_OK, data=result_data)
         
         data = serializer.validated_data
         
