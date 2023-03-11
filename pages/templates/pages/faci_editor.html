@@ -8,7 +8,6 @@
 {% block content %}
     {{ members|json_script:'members_json' }}
     {{ agendas|json_script:'agendas_json' }}
-    
     <script>
         var URL_FACI_EDITOR_AGENDA = "agenda/";
         var URL_SEARCH_USER = "search_user/";
