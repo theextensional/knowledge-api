@@ -70,6 +70,8 @@ class FaciEditorView(APIView):
         }
         return render(request, 'pages/faci_editor.html', context)
 
+
+class FaciEditAimView(APIView):
     def post(self, request, canvas_id=None):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
