@@ -8,6 +8,17 @@
 {% block content %}
     {{ members|json_script:'members_json' }}
     {{ agendas|json_script:'agendas_json' }}
+    <script>
+        var URL_FACI_EDITOR_AGENDA = "agenda/";
+        var URL_SEARCH_USER = "search_user/";
+        var URL_FACI_EDITOR_AIM = "aim/";
+        var URL_FACI_EDITOR_PREPARING = "preparing/";
+        var URL_FACI_EDITOR_START_MEETING = "start_meeting/";
+        var URL_FACI_EDITOR_KEY_THOUTS = "key_thoughts/";
+        var URL_FACI_EDITOR_AGREEMENTS = "agreements/";
+        var URL_FACI_EDITOR_MEMBER = "member/";
+        var CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
     <style>
         .card-body {
             position: relative;
@@ -261,9 +272,9 @@
             methods: {
                 save_agenda(component) {
                     $.ajax({
-                        url: 'agenda/',
+                        url: URL_FACI_EDITOR_AGENDA,
                         headers: {
-                            "X-CSRFToken": "{{ csrf_token }}",
+                            "X-CSRFToken": CSRF_TOKEN,
                         },
                         dataType: 'json',
                         data: {themes: component.m_themes, themes_duration: component.m_themes_duration, questions: component.m_questions},
@@ -390,17 +401,16 @@
                 ListdownField, ToggleField
             },
             methods: {
-                save_member() {
+                save_member(component) {
                     let self = this;
                     $.ajax({
-                        url: 'member/' + this.member.invited + '/',
+                        url: URL_FACI_EDITOR_MEMBER + self.member.invited + '/',
                         headers: {
-                            "X-CSRFToken": "{{ csrf_token }}",
+                            "X-CSRFToken": CSRF_TOKEN,
                         },
                         dataType: 'json',
-                        data: {for_what: this.member.for_what},
+                        data: {for_what: component.mvalue},
                         success: function(result) {
-                            console.log(result);
                             open_block(result['open_block']);
                             agenda_list.agendas.push({invited: self.member.invited, themes: '', themes_duration: 5, questions: '', self: self.member.invited == '{{request.user.username}}' });
                         },
@@ -413,9 +423,9 @@
                 },
                 search_user(component) {
                     $.ajax({
-                        url: "{% url 'search_user' %}",
+                        url: URL_SEARCH_USER,
                         headers: {
-                            "X-CSRFToken": "{{ csrf_token }}",
+                            "X-CSRFToken": CSRF_TOKEN,
                         },
                         dataType: 'json',
                         data: {search_string: component.query},
@@ -446,8 +456,7 @@
                     console.log(this.member);
                 },
                 blur_input_for_what(component) {
-                    console.log(this.member);
-                    this.save_member();
+                    this.save_member(component);
                 },
 
             },
@@ -500,9 +509,9 @@
     
         function save_form_aim(event) {
             $.ajax({
-                url: "aim/",
+                url: URL_FACI_EDITOR_AIM,
                 headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
+                    "X-CSRFToken": CSRF_TOKEN,
                 },
                 dataType: 'json',
                 data: $(event.target.form).serialize(),
@@ -534,9 +543,9 @@
         function save_form_preparing(event) {
             let form = event.target.form;
             $.ajax({
-                url: "preparing/",
+                url: URL_FACI_EDITOR_PREPARING,
                 headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
+                    "X-CSRFToken": CSRF_TOKEN,
                 },
                 dataType: 'json',
                 data: $(form).serialize(),
@@ -566,9 +575,9 @@
 
         function start_meeting(event) {
             $.ajax({
-                url: "start_meeting/",
+                url: URL_FACI_EDITOR_START_MEETING,
                 headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
+                    "X-CSRFToken": CSRF_TOKEN,
                 },
                 dataType: 'json',
                 data: {},
@@ -591,9 +600,9 @@
 
         function save_key_thoughts(event) {
             $.ajax({
-                url: "key_thoughts/",
+                url: URL_FACI_EDITOR_KEY_THOUTS,
                 headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
+                    "X-CSRFToken": CSRF_TOKEN,
                 },
                 dataType: 'json',
                 data: $(event.target.form).serialize(),
@@ -611,9 +620,9 @@
 
         function save_agreements(event) {
             $.ajax({
-                url: "agreements/",
+                url: URL_FACI_EDITOR_AGREEMENTS,
                 headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
+                    "X-CSRFToken": CSRF_TOKEN,
                 },
                 dataType: 'json',
                 data: $(event.target.form).serialize(),

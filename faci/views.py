@@ -97,7 +97,7 @@ class FaciEditAimView(APIView):
                 faci_form.save()
                 data_for_return['id'] = faci_form.instance.pk
                 if not canvas_id:
-                    member = Member(invited=request.user, inviting=request.user, what_for='Инициатор встречи', faci_canvas=faci_form.instance)
+                    member = Member(invited=request.user, inviting=request.user, for_what='Инициатор встречи', faci_canvas=faci_form.instance)
                     member.save()
 
                 data_for_return['open_block'] = 'members'
@@ -121,7 +121,7 @@ class FaciEditMembersView(LoginRequiredMixin, APIView):
             member = member_queryset[0]
             if member.for_what != data['for_what']:
                 member.for_what = data['for_what']
-                member.save('for_what')
+                member.save()
         else:
             member = Member(invited=invited, for_what=data['for_what'], inviting=request.user, faci_canvas=faci_canvas)
             member.save()
