@@ -6,7 +6,7 @@ from urllib.parse import unquote
 import requests
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.views import View
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.response import Response
@@ -17,11 +17,13 @@ from rest_framework import status
 from note.load_from_github import prepare_to_search, get_root_url, search
 from note.credentials import args_uploader
 from note.models import Note
+from note.serializers import NoteAddViewSerializer
 
 
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,))
 def note_search(request, query):
+    """Метод для поиска заметок"""
     query = unquote(query)
 
     search_by = request.GET.get('search-by', 'all')
@@ -64,6 +66,7 @@ def note_search(request, query):
 @api_view(('POST',))
 @renderer_classes((JSONRenderer,))
 def note_hook(request):
+    """Хук для обновления заметок на сервере из принятого Pull Request'а на Github"""
     data = {'files': {}}
     action = request._request.headers.get('X-Github-Event')
     if action == 'push':
@@ -128,6 +131,30 @@ def note_hook(request):
                     )
                     note.save()
 
+        return Response(status=status.HTTP_200_OK, data=data)
+
+
+class NoteAddView(APIView):
+    """Класс метода для """
+    def post(self, request):
+        serializer = NoteAddViewSerializer(data=request.POST)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        note = Note.objects.filter(title=data['title'])
+        if note.exists():
+            data = {'detail': 'Заметка с таким названием уже существует'}
+            return Response(status=status.HTTP_200_OK, data=data)
+
+        note = Note(title=data['title'], content=data['content']) # TODO добавить search_title, search_content
+        data = {}
+        return Response(status=status.HTTP_200_OK, data=data)
+
+
+class NoteGetView(APIView):
+    """Метод для получения заметки"""
+    def get(self, request, title):
+        note = get_object_or_404(Note, title=unquote(title))
+        data = {'title': note.title, 'content': note.content, 'source': None}
         return Response(status=status.HTTP_200_OK, data=data)
 
 
