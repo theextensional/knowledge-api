@@ -9,7 +9,7 @@ from django.db.models import Q
 from firebase_admin import credentials, firestore
 from typesense import Client
 
-from note.models import Note
+from note.models import Note, prepare_to_search
 
 
 def get_root_url(
@@ -21,10 +21,6 @@ def get_root_url(
     url_raw = f'https://raw.githubusercontent.com/{owner}/{repo}/main{directory}'
     url_page = f'https://github.com/{owner}/{repo}/blob/main{directory}'
     return url_raw if raw else url_page
-
-
-def prepare_to_search(value):
-    return value.lower().replace('ё', 'е')
 
 
 def download_from_github_archive(owner, repo, directory):
@@ -179,9 +175,8 @@ class UploaderDjangoServer:
         fields = Note(
             title=file_name,
             content=file_content,
-            search_content=prepare_to_search(file_content),
-            search_title=prepare_to_search(file_name),
         )
+        fields.fetch_search_fields()
         self.portion.append(fields)
 
     def commit(self):

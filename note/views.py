@@ -139,22 +139,27 @@ def note_hook(request):
 
 class NoteAddView(APIView):
     """Класс метода для добавления заметки"""
+
     def post(self, request):
         serializer = NoteAddViewSerializer(data=request.POST)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        note = Note.objects.filter(title=data['title'])
-        if note.exists():
+        uploader_name = data.get('source', settings.DEFAULT_UPLOADER)
+        uploader = get_uploader(uploader_name, args_uploader[uploader_name])
+        note_data = uploader.get(title=data['title'])
+        if note_data:
             data = {'detail': 'Заметка с таким названием уже существует'}
             return Response(status=status.HTTP_200_OK, data=data)
 
-        note = Note(title=data['title'], content=data['content']) # TODO добавить search_title, search_content
+        note = Note(title=data['title'], content=data['content'])
+        note.fetch_search_fields()
         data = {}
         return Response(status=status.HTTP_200_OK, data=data)
 
 
 class NoteGetView(APIView):
-    """Метод для получения заметки"""
+    """Класс метода для получения заметки"""
+
     def get(self, request, title):
         uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
         uploader = get_uploader(uploader_name, args_uploader[uploader_name])
