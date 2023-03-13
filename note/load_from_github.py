@@ -216,6 +216,14 @@ class UploaderDjangoServer:
 
         results = list(notes[offset:limit+offset].values(*fields))
         return dict(results=results, count=count)
+        
+    def get(self, title):
+        notes = Note.objects.filter(title=title)
+        if notes.exists():
+            note = notes[0]
+            return {'title': note.title, 'content': note.content}
+        
+        return None
 
 
 def get_class_name(camel_case):
@@ -243,24 +251,5 @@ def run_initiator(downloader, args_downloader, uploader, args_uploader):
     print('uploading is finished. Totally uploaded:', total_size + portion_size)
 
 
-def search(
-    uploader,
-    args_uploader,
-    operator,
-    limit,
-    offset,
-    fields,
-    file_name=None,
-    file_content=None,
-):
-    uploader = globals()[get_class_name(uploader)](*args_uploader)
-    data = uploader.search(
-        operator,
-        limit,
-        offset,
-        fields,
-        file_name,
-        file_content,
-    )
-    data['path'] = '{}/'.format(get_root_url())
-    return data
+def get_uploader(uploader_name, args_uploader):
+    return globals()[get_class_name(uploader_name)](*args_uploader)

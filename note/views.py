@@ -14,7 +14,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework import status
 
-from note.load_from_github import prepare_to_search, get_root_url, search
+from note.load_from_github import prepare_to_search, get_uploader, get_root_url
 from note.credentials import args_uploader
 from note.models import Note
 from note.serializers import NoteAddViewSerializer
@@ -49,10 +49,11 @@ def note_search(request, query):
     file_name = query if search_by in ('title', 'all') else None
     file_content = query if search_by in ('content', 'all') else None
     fields = ('title', 'content') if fields == 'all' else (fields,)
-    uploader = request.GET.get('source', settings.DEFAULT_UPLOADER)
-    data = search(
-        uploader,
-        args_uploader[uploader],
+    uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
+    uploader = get_uploader(uploader_name, args_uploader[uploader_name])
+    data = uploader.search(
+        #uploader,
+        #args_uploader[uploader_name],
         operator=operator,
         limit=limit,
         offset=offset,
@@ -60,6 +61,8 @@ def note_search(request, query):
         file_name=file_name,
         file_content=file_content,
     )
+    data['source'] = uploader_name
+    data['path'] = '{}/'.format(get_root_url())
     return Response(status=status.HTTP_200_OK, data=data)
 
 
@@ -135,7 +138,7 @@ def note_hook(request):
 
 
 class NoteAddView(APIView):
-    """Класс метода для """
+    """Класс метода для добавления заметки"""
     def post(self, request):
         serializer = NoteAddViewSerializer(data=request.POST)
         serializer.is_valid(raise_exception=True)
@@ -153,9 +156,14 @@ class NoteAddView(APIView):
 class NoteGetView(APIView):
     """Метод для получения заметки"""
     def get(self, request, title):
-        note = get_object_or_404(Note, title=unquote(title))
-        data = {'title': note.title, 'content': note.content, 'source': None}
-        return Response(status=status.HTTP_200_OK, data=data)
+        uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
+        uploader = get_uploader(uploader_name, args_uploader[uploader_name])
+        note_data = uploader.get(title=unquote(title))
+        if not note_data:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        note_data['source'] = uploader_name
+        return Response(status=status.HTTP_200_OK, data=note_data)
 
 
 class NoteEditorView(APIView):
