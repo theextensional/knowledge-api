@@ -17,7 +17,7 @@ from rest_framework import status
 from note.load_from_github import prepare_to_search, get_uploader, get_root_url
 from note.credentials import args_uploader
 from note.models import Note
-from note.serializers import NoteAddViewSerializer
+from note.serializers import NoteAddViewSerializer, NoteEditViewSerializer
 
 
 @api_view(('GET',))
@@ -52,8 +52,6 @@ def note_search(request, query):
     uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
     uploader = get_uploader(uploader_name, args_uploader[uploader_name])
     data = uploader.search(
-        #uploader,
-        #args_uploader[uploader_name],
         operator=operator,
         limit=limit,
         offset=offset,
@@ -140,21 +138,50 @@ def note_hook(request):
 class NoteAddView(APIView):
     """Класс метода для добавления заметки"""
 
-    def post(self, request):
+    def post(self, request, title):
         serializer = NoteAddViewSerializer(data=request.POST)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        uploader_name = data.get('source', settings.DEFAULT_UPLOADER)
+
+        title = unquote(title)
+
+        uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
         uploader = get_uploader(uploader_name, args_uploader[uploader_name])
-        note_data = uploader.get(title=data['title'])
+        note_data = uploader.get(title=title)
         if note_data:
             data = {'detail': 'Заметка с таким названием уже существует'}
             return Response(status=status.HTTP_200_OK, data=data)
 
-        note = Note(title=data['title'], content=data['content'])
-        note.fetch_search_fields()
-        data = {}
-        return Response(status=status.HTTP_200_OK, data=data)
+        note_data = uploader.add(title, data['content'])
+        note_data['source'] = uploader_name
+        return Response(status=status.HTTP_200_OK, data=note_data)
+
+
+class NoteEditView(APIView):
+    """Класс метода для редактирования заметки"""
+
+    def post(self, request, title):
+        serializer = NoteEditViewSerializer(data=request.POST)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        title = unquote(title)
+        new_title = data['new_title']
+        new_content = data['new_content']
+
+        uploader_name = request.GET.get('source', settings.DEFAULT_UPLOADER)
+        uploader = get_uploader(uploader_name, args_uploader[uploader_name])
+        if not uploader.get(title=title):
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        note_data = uploader.get(title=new_title)
+        if note_data:
+            data = {'detail': 'Заметка с таким названием уже существует'}
+            return Response(status=status.HTTP_200_OK, data=data)
+
+        note_data = uploader.edit(title, new_title, new_content)
+        note_data['source'] = uploader_name
+        return Response(status=status.HTTP_200_OK, data=note_data)
 
 
 class NoteGetView(APIView):

@@ -220,6 +220,24 @@ class UploaderDjangoServer:
         
         return None
 
+    def add(self, title, content):
+        note = Note(title=title, content=content)
+        note.fetch_search_fields()
+        note.save()
+        return {'title': note.title, 'content': note.content}
+
+    def edit(self, title, new_title=None, new_content=None):
+        note = Note.objects.get(title=title)
+        if new_title:
+            note.title = new_title
+
+        if new_content:
+            note.content = new_content
+
+        note.fetch_search_fields()
+        note.save()
+        return {'title': note.title, 'content': note.content}
+
 
 def get_class_name(camel_case):
     return 'Uploader{}'.format(camel_case.title().replace('_', ''))

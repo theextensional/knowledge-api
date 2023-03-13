@@ -485,7 +485,6 @@
                     this.member_list.push({'id': '', 'invited': '', 'inviting': '{{ request.user.username }}', 'for_what': 'цель приглашения?', 'edit': true});
                     setTimeout(function() {
                         member_items = $('#app>table')[0].children;
-                        console.log(member_items[member_items.length-1]);
                         member_items[member_items.length-1].querySelector('.button_ss').click();
                     }, 20);
                 },
