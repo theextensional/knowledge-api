@@ -6,11 +6,11 @@ class NoteAddViewSerializer(serializers.Serializer):
 
 
 class NoteEditViewSerializer(serializers.Serializer):
-    new_title = serializers.CharField(max_length=255)
-    new_content = serializers.CharField(max_length=20000)
+    new_title = serializers.CharField(max_length=255, required=False)
+    new_content = serializers.CharField(max_length=20000, required=False)
 
     def validate(self, data):
-        if data['new_title'] is None and data['new_content'] is None:
+        if not data.get('new_title') and not data.get('new_content'):
             raise serializers.ValidationError("required new_title or new_content, or both")
 
         return data
